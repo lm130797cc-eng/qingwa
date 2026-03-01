@@ -14,7 +14,7 @@ jobs:
         run: |
           # 替换为您实际的 Render App URL
           # Replace with your actual Render App URL
-          TARGET_URL="https://ant-island-payment-bot.onrender.com/health"
+          TARGET_URL="https://qingwa.onrender.com/health"
           
           echo "⚡ Sending Keep-Alive Ping to: $TARGET_URL"
           

@@ -202,10 +202,17 @@ const CONFIG = {
   chainType: (process.env.USDT_WALLET_ADDRESS || '').startsWith('T') ? 'TRON' : 'EVM', // 自动识别链类型
   minConfirmations: 20, // 最小确认数（防回滚）
   tronScanApi: 'https://api.tronscan.org/api/transaction-info',
-  evmApi: 'https://api.bscscan.com/api', // 默认 BSC (Binance Smart Chain)
-  evmUsdtContract: '0x55d398326f99059fF775485246999027B3197955', // BSC-USD (BEP20)
-  evmDecimals: 18, // BSC-USD 是 18 位 (ERC20 USDT 是 6 位)
-  exchangeRate: 100, // 1 USDT = 100 GAS (默认汇率，实际按订单或策略)
+  
+  // EVM 配置 (默认 Ethereum Mainnet - ERC20)
+  // 如需 BSC (BEP20)，请修改:
+  // Api: https://api.bscscan.com/api
+  // Contract: 0x55d398326f99059fF775485246999027B3197955
+  // Decimals: 18
+  evmApi: 'https://api.etherscan.io/api', 
+  evmUsdtContract: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT (ERC20)
+  evmDecimals: 6, // ERC20 USDT 是 6 位
+  
+  exchangeRate: 10, // 1 USDT = 10 GAS (默认汇率，实际按订单或策略)
   minUsdt: 1, // 最小 1 USDT (测试用，生产可调)
   donationUsdt: Number(process.env.DONATION_USDT || 12),
   donationGasBonus: Number(process.env.DONATION_GAS_BONUS || 30),
