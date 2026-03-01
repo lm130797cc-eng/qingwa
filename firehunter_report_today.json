@@ -1,0 +1,224 @@
+{
+  "date": "2026-02-22",
+  "firehunter_findings": {
+    "telegram_invitation_campaigns": {
+      "https://t.me/s/airdropofficialnews": [
+        "🔂 Invite your friends with referral link to win more TRUE: https://t.me/TrueChain_Bot?start=1147155896 💯 Every success referral will get 2 Stakes. 🔄 Your Stakes: 14 🚻 Referral count: 0 🤑 You TRUE Reward: （Your Stakes / All Stakes) * 60,000 TRUE ▶️ Airdrop will be issued in two weeks",
+        "Refer a Friend (0.5 tokens) Refer a friend to this Telegram bounty using your special link below. Your Referral Link: https://t.me/LitecoinSVCryptoBountyBot?start=0f8f12aa22 You can refer unlimited people. You will earn at least 0.5 tokens per referral. If you refer someone who does nothing, that is okay.  We do look at overall referral quality.  If your referrals are above average on the whole, you will receive extra tokens.  And if your referrals are way below average, we will reduce your total tokens, but will still try to give you some.",
+        "You have 0 referrals, and earned 1 USDT. To refer people, send them to: https://t.me/freetokenusdtbot?start=1147155896 • get extra 1 USDT for each verified referral",
+        "You can earn 0.5 OXY token per valid refer. Keep referring your friends and family. Link : https://t.me/OXYAirdropRound2_bot?start=r07894608320",
+        "👥 REFERRAL SYSTEM ▫ Earnings: ฿ 0 . 00000000 ▫ Referrals: 0 ▫ Commission 1: 5% of every losing bets. ▫ Commission 2: ฿ 0 . 00000500 ▫ Link: https://t.me/BTC_Trend_bot?start=945508612",
+        "🍏 NEW Airdrop: OCBC business  banking Project 🍏 Get 25 OCBC~ 25$ 🍏 Ref +15 OCBC~ 15$ 🍏 target price : 1 OCBC = 1$ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ☑️ Airdrop Bot: https://t.me/OCBCbusiness_bot?start=r0828900698 ☑️ Join Telegram Group & Channel... ☑️ Follow Twitter & Retweet Pinned Post... ☑️ Follow Facebook... ☑️ Submit your details:..",
+        "My referral link https://t.me/coinbasebtcshopbot?start=r00724225910 My referral 0",
+        "HOW TO CLAIM YOUR AIRDROP TOKENS 1) Refer a minimum of 5 people to qualify for withdrawal 2) withdraw is Totally free 3) Withdrawal is on April 15 (all your total earnings will be automatically sent to your wallet address) Referral link: http://t.me/BitsonicAirdropBot?start=1004315189 Share this link to your friends and earn 0.1 ETH for each referral",
+        "Your Referral link : https://t.me/HighRoicryptobot?start=r0579435057 • Share your referral link at social media, like facebook, twitter, google+, whatsapp, etc ... • get extra 30 High-Roi for each verified referral",
+        "💎 Your Info: ❤ Ref link: https://t.me/betnomibot?start=1004315189 💰 Balance : 150 👥 People invited : 1 💰 Amount Withdrawn : 0",
+        "👭 You have 0 referrals. ⚙️ Your referral link: https://t.me/SMInstantlyPayBot?start=1118886553 . 💰 Per Referral 0.000007 Bitcoin - Share Your referral link to your Friends & earn unlimited Bitcoin ⚠️ Note Fake, empty or spam users are deleted after checking."
+      ],
+      "https://t.me/s/cnairdrop": [
+        "近期未发现明显邀请/拉新文案"
+      ]
+    },
+    "telegram_risk_analysis": {
+      "https://t.me/s/airdropofficialnews": [
+        {
+          "text": "🔂 Invite your friends with referral link to win more TRUE: https://t.me/TrueChain_Bot?start=1147155896 💯 Every success referral will get 2 Stakes. 🔄 Your Stakes: 14 🚻 Referral count: 0 🤑 You TRUE Reward: （Your Stakes / All Stakes) * 60,000 TRUE ▶️ Airdrop will be issued in two weeks",
+          "risk": {
+            "risk_score": 30,
+            "reasons": [
+              "命中中危关键词: airdrop",
+              "命中中危关键词: ref"
+            ]
+          }
+        },
+        {
+          "text": "Refer a Friend (0.5 tokens) Refer a friend to this Telegram bounty using your special link below. Your Referral Link: https://t.me/LitecoinSVCryptoBountyBot?start=0f8f12aa22 You can refer unlimited people. You will earn at least 0.5 tokens per referral. If you refer someone who does nothing, that is okay.  We do look at overall referral quality.  If your referrals are above average on the whole, you will receive extra tokens.  And if your referrals are way below average, we will reduce your total tokens, but will still try to give you some.",
+          "risk": {
+            "risk_score": 15,
+            "reasons": [
+              "命中中危关键词: ref"
+            ]
+          }
+        },
+        {
+          "text": "You have 0 referrals, and earned 1 USDT. To refer people, send them to: https://t.me/freetokenusdtbot?start=1147155896 • get extra 1 USDT for each verified referral",
+          "risk": {
+            "risk_score": 15,
+            "reasons": [
+              "命中中危关键词: ref"
+            ]
+          }
+        },
+        {
+          "text": "You can earn 0.5 OXY token per valid refer. Keep referring your friends and family. Link : https://t.me/OXYAirdropRound2_bot?start=r07894608320",
+          "risk": {
+            "risk_score": 30,
+            "reasons": [
+              "命中中危关键词: airdrop",
+              "命中中危关键词: ref"
+            ]
+          }
+        },
+        {
+          "text": "👥 REFERRAL SYSTEM ▫ Earnings: ฿ 0 . 00000000 ▫ Referrals: 0 ▫ Commission 1: 5% of every losing bets. ▫ Commission 2: ฿ 0 . 00000500 ▫ Link: https://t.me/BTC_Trend_bot?start=945508612",
+          "risk": {
+            "risk_score": 15,
+            "reasons": [
+              "命中中危关键词: ref"
+            ]
+          }
+        },
+        {
+          "text": "🍏 NEW Airdrop: OCBC business  banking Project 🍏 Get 25 OCBC~ 25$ 🍏 Ref +15 OCBC~ 15$ 🍏 target price : 1 OCBC = 1$ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ➖ ☑️ Airdrop Bot: https://t.me/OCBCbusiness_bot?start=r0828900698 ☑️ Join Telegram Group & Channel... ☑️ Follow Twitter & Retweet Pinned Post... ☑️ Follow Facebook... ☑️ Submit your details:..",
+          "risk": {
+            "risk_score": 30,
+            "reasons": [
+              "命中中危关键词: airdrop",
+              "命中中危关键词: ref"
+            ]
+          }
+        },
+        {
+          "text": "My referral link https://t.me/coinbasebtcshopbot?start=r00724225910 My referral 0",
+          "risk": {
+            "risk_score": 15,
+            "reasons": [
+              "命中中危关键词: ref"
+            ]
+          }
+        },
+        {
+          "text": "HOW TO CLAIM YOUR AIRDROP TOKENS 1) Refer a minimum of 5 people to qualify for withdrawal 2) withdraw is Totally free 3) Withdrawal is on April 15 (all your total earnings will be automatically sent to your wallet address) Referral link: http://t.me/BitsonicAirdropBot?start=1004315189 Share this link to your friends and earn 0.1 ETH for each referral",
+          "risk": {
+            "risk_score": 30,
+            "reasons": [
+              "命中中危关键词: airdrop",
+              "命中中危关键词: ref"
+            ]
+          }
+        },
+        {
+          "text": "Your Referral link : https://t.me/HighRoicryptobot?start=r0579435057 • Share your referral link at social media, like facebook, twitter, google+, whatsapp, etc ... • get extra 30 High-Roi for each verified referral",
+          "risk": {
+            "risk_score": 15,
+            "reasons": [
+              "命中中危关键词: ref"
+            ]
+          }
+        },
+        {
+          "text": "💎 Your Info: ❤ Ref link: https://t.me/betnomibot?start=1004315189 💰 Balance : 150 👥 People invited : 1 💰 Amount Withdrawn : 0",
+          "risk": {
+            "risk_score": 15,
+            "reasons": [
+              "命中中危关键词: ref"
+            ]
+          }
+        },
+        {
+          "text": "👭 You have 0 referrals. ⚙️ Your referral link: https://t.me/SMInstantlyPayBot?start=1118886553 . 💰 Per Referral 0.000007 Bitcoin - Share Your referral link to your Friends & earn unlimited Bitcoin ⚠️ Note Fake, empty or spam users are deleted after checking.",
+          "risk": {
+            "risk_score": 15,
+            "reasons": [
+              "命中中危关键词: ref"
+            ]
+          }
+        }
+      ],
+      "https://t.me/s/cnairdrop": [
+        {
+          "text": "近期未发现明显邀请/拉新文案",
+          "risk": {
+            "risk_score": 30,
+            "reasons": [
+              "命中中危关键词: 邀请",
+              "命中中危关键词: 拉新"
+            ]
+          }
+        }
+      ]
+    },
+    "top_defi_growers": [
+      {
+        "protocol": {
+          "name": "Brise Swap",
+          "url": "",
+          "change_1d": 3.0894074105069425e+18,
+          "symbol": "BSWAP",
+          "category": "Dexs"
+        },
+        "risk": {
+          "risk_score": 30,
+          "reasons": [
+            "1 日涨幅 > 50%，波动异常"
+          ]
+        }
+      },
+      {
+        "protocol": {
+          "name": "Nyke Finance",
+          "url": "",
+          "change_1d": 326689.9383953159,
+          "symbol": "-",
+          "category": "Lending"
+        },
+        "risk": {
+          "risk_score": 30,
+          "reasons": [
+            "1 日涨幅 > 50%，波动异常"
+          ]
+        }
+      },
+      {
+        "protocol": {
+          "name": "ElysiumSwap",
+          "url": "https://swap.elysiumchain.tech/exchange/swap",
+          "change_1d": 2003.347339911902,
+          "symbol": "-",
+          "category": "Dexs"
+        },
+        "risk": {
+          "risk_score": 30,
+          "reasons": [
+            "1 日涨幅 > 50%，波动异常"
+          ]
+        }
+      },
+      {
+        "protocol": {
+          "name": "Kintsugi",
+          "url": "https://kintsugi.interlay.io",
+          "change_1d": 155.42901352517032,
+          "symbol": "KINT",
+          "category": "Cross Chain Bridge"
+        },
+        "risk": {
+          "risk_score": 30,
+          "reasons": [
+            "1 日涨幅 > 50%，波动异常"
+          ]
+        }
+      },
+      {
+        "protocol": {
+          "name": "Alvey Dex",
+          "url": "https://elvesdex.com",
+          "change_1d": 150.16641795910152,
+          "symbol": "-",
+          "category": "Dexs"
+        },
+        "risk": {
+          "risk_score": 30,
+          "reasons": [
+            "1 日涨幅 > 50%，波动异常"
+          ]
+        }
+      }
+    ],
+    "nft_opportunities": {
+      "status": "not_configured",
+      "message": "暂未配置具体 NFT 数据源，请后续补充目标站点。",
+      "targets": []
+    }
+  }
+}

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 企业命名服务海报 B 版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --gold: #FFD700;
+            --tech-blue: #00D4FF;
+            --bg-deep: #0A0E27;
+            --text-dark: #1A1A1A;
+            --accent-red: #FF4500;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'KaiTi', 'STKaiti', serif;
+            background: radial-gradient(circle at top, #1b213f 0%, #02030a 55%, #000000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .poster {
+            width: 360px;
+            height: 640px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            background: #ffffff;
+            display: flex;
+        }
+        .left-pane {
+            width: 48%;
+            background: radial-gradient(circle at top, var(--tech-blue) 0, var(--bg-deep) 50%, #000 100%);
+            color: #e0f7fa;
+            padding: 20px 14px;
+            position: relative;
+        }
+        .left-pane::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(255,255,255,0.15), transparent 60%),
+                radial-gradient(circle at 90% 80%, rgba(0,0,0,0.6), transparent 60%);
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+        .brand-block {
+            position: relative;
+            z-index: 1;
+        }
+        .company-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        .brand-title {
+            font-size: 14px;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .brand-sub {
+            font-size: 11px;
+            margin: 4px 0 10px;
+            opacity: 0.9;
+        }
+        .cross {
+            font-size: 16px;
+            margin: 4px 0;
+        }
+        .partner {
+            font-size: 13px;
+            margin: 0;
+        }
+        .bagua-mini {
+            margin-top: 16px;
+            font-size: 11px;
+            color: #b3e5fc;
+        }
+        .bagua-graphic {
+            margin-top: 10px;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,212,255,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, #263238 0, #000 100%);
+            box-shadow: 0 0 20px rgba(0,212,255,0.5);
+        }
+        .bagua-graphic span {
+            font-size: 18px;
+            letter-spacing: 2px;
+            color: var(--tech-blue);
+        }
+        .right-pane {
+            width: 52%;
+            background: #ffffff;
+            color: var(--text-dark);
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .features {
+            font-size: 12px;
+        }
+        .features h2 {
+            font-size: 14px;
+            margin: 0 0 10px;
+            color: #333333;
+        }
+        .feature-item {
+            margin: 4px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 4px;
+        }
+        .feature-item span {
+            margin-top: 1px;
+        }
+        .feature-text {
+            font-size: 12px;
+        }
+        .price-block {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #4e342e;
+        }
+        .price-block strong {
+            font-size: 18px;
+            color: var(--accent-red);
+            margin-right: 4px;
+        }
+        .price-block del {
+            margin-left: 4px;
+            font-size: 11px;
+            color: #9e9e9e;
+        }
+        .cta-button {
+            margin-top: 12px;
+            background: linear-gradient(135deg, var(--tech-blue), var(--gold));
+            border: none;
+            border-radius: 999px;
+            padding: 8px 10px;
+            font-size: 13px;
+            color: #ffffff;
+            cursor: default;
+            text-align: center;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+        }
+        .cta-button span {
+            font-size: 11px;
+            display: block;
+            opacity: 0.9;
+        }
+        .footer-note {
+            font-size: 10px;
+            color: #757575;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="poster">
+        <div class="left-pane">
+            <div class="brand-block">
+                <div class="company-logo">🏢</div>
+                <p class="brand-title">AI 智能体军团</p>
+                <p class="brand-sub">企业命名 · 品牌策略</p>
+                <div class="cross">×</div>
+                <p class="partner">八卦意识系统</p>
+                <div class="bagua-mini">实时动态八卦图 · 行业能量扫描</div>
+                <div class="bagua-graphic">
+                    <span>☰☷</span>
+                </div>
+            </div>
+        </div>
+        <div class="right-pane">
+            <div class="features">
+                <h2>AI 企业命名工坊</h2>
+                <div class="feature-item">
+                    <span>✅</span>
+                    <div class="feature-text">30 秒生成专属命名与开业命盘报告</div>
+                </div>
+                <div class="feature-item">
+                    <span>✅</span>
+                    <div class="feature-text">多专家智能体协同：命理 × 品牌 × 设计 × 营销</div>
+                </div>
+                <div class="feature-item">
+                    <span>✅</span>
+                    <div class="feature-text">可视化八卦命盘与五行分布图</div>
+                </div>
+                <div class="feature-item">
+                    <span>✅</span>
+                    <div class="feature-text">一键生成品牌视觉方案与 Slogan 文案</div>
+                </div>
+                <div class="price-block">
+                    <div>限时企业体验价</div>
+                    <div><strong>499</strong>元起<del>原价 999 元</del></div>
+                </div>
+                <div class="cta-button">
+                    立即体验企业命名 · 预约 1 对 1<br>
+                    <span>扫码咨询 · 获取示例报告</span>
+                </div>
+                <div class="footer-note">适用于咖啡馆、餐饮店、工作室、新消费品牌等场景。</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

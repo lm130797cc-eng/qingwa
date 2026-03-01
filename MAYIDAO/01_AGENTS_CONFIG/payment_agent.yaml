@@ -1,0 +1,27 @@
+agent_name: payment_agent
+description: "USDT + Telegram auto confirmation service"
+version: 2.0.0
+schema_version: "1.0"
+
+runtime:
+  language: node
+  entry: D:/MAYIJU/MAYIDAO/03_BACKEND/payment_auto.js
+  node_version: 18
+  restart: always
+
+env:
+  TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+  SUPABASE_MAYIDAO_URL: ${SUPABASE_MAYIDAO_URL}
+  SUPABASE_MAYIDAO_SERVICE_KEY: ${SUPABASE_MAYIDAO_SERVICE_KEY}
+  N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL}
+  USDT_WALLET_ADDRESS: ${USDT_WALLET_ADDRESS}
+
+healthcheck:
+  url: http://localhost:3000
+  interval_sec: 30
+  timeout_sec: 3
+
+logging:
+  level: info
+  file: D:/MAYIJU/MAYIDAO/logs/payment_agent.log
+

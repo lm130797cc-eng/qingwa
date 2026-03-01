@@ -1,0 +1,8 @@
+{
+    "sender": "BaguaAgent",
+    "target": "NexusCore",
+    "message": "八卦中转已全局启用，所有军团切换输入范式",
+    "bagua_sequence": ["111", "000", "101"],
+    "timestamp": "2026-02-27T23:35:00Z",
+    "status": "active"
+}

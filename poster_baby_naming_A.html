@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 八卦宝宝取名服务海报 A 版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --gold-light: #fbe9a9;
+            --gold: #d4af37;
+            --gold-deep: #a67c00;
+            --bg-dark: #050816;
+            --accent-green: #4caf50;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'KaiTi', 'STKaiti', serif;
+            background: radial-gradient(circle at top, #1e2746 0%, #050816 55%, #000000 100%);
+            color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .poster {
+            width: 360px;
+            height: 640px;
+            background: rgba(5, 8, 22, 0.9);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            overflow: hidden;
+            position: relative;
+        }
+        .top-bar {
+            background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+            padding: 24px 20px 18px;
+            color: #ffffff;
+            text-align: left;
+            position: relative;
+        }
+        .top-bar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 10% 0%, rgba(255,255,255,0.25), transparent 55%),
+                              radial-gradient(circle at 90% 100%, rgba(0,0,0,0.4), transparent 60%);
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+        .logo-title {
+            position: relative;
+            z-index: 1;
+        }
+        .logo-mark {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+            font-size: 20px;
+        }
+        .main-title {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: 2px;
+        }
+        .sub-title {
+            margin: 6px 0 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .tag-row {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 11px;
+        }
+        .tag {
+            border-radius: 999px;
+            padding: 2px 8px;
+            border: 1px solid rgba(255,255,255,0.7);
+            background: rgba(0,0,0,0.15);
+        }
+        .mid-bagua {
+            padding: 18px 20px 10px;
+            position: relative;
+        }
+        .bagua-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+        .bagua-circle {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #cfd8dc);
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .yin-yang {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #000000 0%, #000000 50%, #ffffff 50%, #ffffff 100%);
+            animation: spin 18s linear infinite;
+        }
+        .yin-yang::before,
+        .yin-yang::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+        }
+        .yin-yang::before {
+            top: 0;
+            background: radial-gradient(circle, #000000 0, #000000 30%, #ffffff 31%, #ffffff 100%);
+        }
+        .yin-yang::after {
+            bottom: 0;
+            background: radial-gradient(circle, #ffffff 0, #ffffff 30%, #000000 31%, #000000 100%);
+        }
+        .bagua-label {
+            margin-top: 8px;
+            font-size: 12px;
+            text-align: center;
+            color: #cfd8dc;
+        }
+        .info-block {
+            background: rgba(255,255,255,0.96);
+            color: #212121;
+            margin: 0 16px;
+            border-radius: 14px;
+            padding: 16px 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+        }
+        .info-title {
+            font-size: 14px;
+            margin: 0 0 8px;
+            color: #3e2723;
+            letter-spacing: 1px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin: 4px 0;
+        }
+        .info-label {
+            color: #616161;
+        }
+        .info-value {
+            font-weight: 600;
+            color: #1b5e20;
+        }
+        .name-list {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        .name-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+        .name-item small {
+            color: #757575;
+            font-size: 11px;
+        }
+        .bottom-cta {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 14px 18px 18px;
+            background: linear-gradient(180deg, rgba(5,8,22,0.1), rgba(5,8,22,0.9));
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .cta-main {
+            font-size: 13px;
+            margin: 0 0 4px;
+            color: #ffeb3b;
+        }
+        .cta-sub {
+            font-size: 11px;
+            color: #e0e0e0;
+            margin: 0 0 8px;
+        }
+        .cta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .price-tag {
+            font-size: 12px;
+            color: #ffffff;
+        }
+        .price-tag span {
+            color: #ffeb3b;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 0 2px;
+        }
+        .qr-placeholder {
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            border: 1px dashed rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #bdbdbd;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="poster">
+        <div class="top-bar">
+            <div class="logo-title">
+                <div class="logo-mark">🧧</div>
+                <h1 class="main-title">宝宝取名分析报告</h1>
+                <p class="sub-title">AI × 易经 × 数字哲学 · 命名系统</p>
+                <div class="tag-row">
+                    <span class="tag">八卦命盘</span>
+                    <span class="tag">五行平衡</span>
+                    <span class="tag">音律优化</span>
+                </div>
+            </div>
+        </div>
+        <div class="mid-bagua">
+            <div class="bagua-wrapper">
+                <div class="bagua-circle">
+                    <div class="yin-yang"></div>
+                </div>
+            </div>
+            <div class="bagua-label">震卦 · 木 · 清晨 06:30</div>
+            <div class="info-block">
+                <h2 class="info-title">基本信息</h2>
+                <div class="info-row">
+                    <div class="info-label">👶 姓名</div>
+                    <div class="info-value">测试宝</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">🎂 出生</div>
+                    <div class="info-value">2026-03-01</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">☯️ 八卦 · 五行</div>
+                    <div class="info-value">震卦 · 木</div>
+                </div>
+                <div class="name-list">
+                    <div class="info-label">✨ 推荐名字</div>
+                    <div class="name-item">
+                        <span>测试宝森</span>
+                        <small>生机充沛</small>
+                    </div>
+                    <div class="name-item">
+                        <span>测试宝林</span>
+                        <small>根深叶茂</small>
+                    </div>
+                    <div class="name-item">
+                        <span>测试宝桐</span>
+                        <small>格局高远</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bottom-cta">
+            <p class="cta-main">🔥 首周限量 100 名 · 建议支持 99 元</p>
+            <p class="cta-sub">扫描二维码 · 30 秒生成《AI 八卦取名报告》</p>
+            <div class="cta-row">
+                <div class="price-tag">含八卦命盘 + 五行建议 + 名字解析</div>
+                <div class="qr-placeholder">放置二维码</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

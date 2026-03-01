@@ -1,0 +1,31 @@
+# MONITOR AGENT CONFIGURATION
+# 运行监控 + 自检
+version: 1.0.0
+name: MonitorAgent
+description: Checks system health and logs critical errors.
+
+checks:
+  - name: GatewayStatus
+    interval: 60s
+    endpoint: /api/health
+    expected: 200
+  - name: ReferralStatus
+    interval: 300s
+    endpoint: /api/referral/health
+    expected: 200
+
+alerts:
+  - type: email
+    to: admin@mayiju.com
+    level: critical
+  - type: console
+    level: warning
+
+logging:
+  file: /var/log/mayidao/monitor.log
+  max_size: 10MB
+  rotate: true
+
+thresholds:
+  error_rate: 0.05 # 5% error rate triggers alert
+  response_time: 1000ms # > 1s response time triggers warning

@@ -1,0 +1,110 @@
+{
+  "title": "AntIsland Phase 2 Monitoring",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Daily Revenue (USDT)",
+      "type": "stat",
+      "datasource": "Supabase",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT order_date, gross_revenue FROM ants_mayidao.v_daily_revenue ORDER BY order_date DESC LIMIT 1"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 2,
+      "title": "New Users (Today)",
+      "type": "stat",
+      "datasource": "Supabase",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT signup_date, new_users FROM ants_mayidao.v_user_growth ORDER BY signup_date DESC LIMIT 1"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      }
+    },
+    {
+      "id": 3,
+      "title": "Payment Success Rate (Last 24h)",
+      "type": "gauge",
+      "datasource": "Supabase",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT 100.0 * COUNT(*) FILTER (WHERE payment_status = 'paid') / COUNT(*) as success_rate FROM ants_mayidao.orders WHERE created_at > NOW() - INTERVAL '24 hours'"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 80 },
+              { "color": "green", "value": 95 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Order Trend (Last 7 Days)",
+      "type": "timeseries",
+      "datasource": "Supabase",
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT order_date as time, order_count as value FROM ants_mayidao.v_daily_revenue WHERE order_date > NOW() - INTERVAL '7 days' ORDER BY time ASC"
+        }
+      ],
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "id": 5,
+      "title": "Top Referrers (Viral KOCs)",
+      "type": "table",
+      "datasource": "Supabase",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT root_referrer, downstream_users, total_gas_distributed FROM ants_mayidao.v_referral_network LIMIT 10"
+        }
+      ],
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      }
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 30
+}

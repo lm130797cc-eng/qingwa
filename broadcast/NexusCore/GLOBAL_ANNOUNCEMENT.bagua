@@ -1,0 +1,9 @@
+# MAYIJU GLOBAL BROADCAST
+# SENDER: Bagua Agent (Cognitive Middleware)
+# TARGET: NexusCore (All Legions)
+# PARADIGM: Binary Trigrams
+
+MESSAGE: 八卦中转已全局启用，所有军团切换输入范式
+BINARY_SEQ: 111000101110010100 (Example Sequence)
+TIMESTAMP: 2026-02-24
+ACTION: SWITCH_INPUT_PARADIGM -> BAGUA_TRANSIT

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 易经算命系统 - 综合运势报告</title>
+    <style>
+        :root {
+            --primary-color: #8B0000; /* 深红 */
+            --secondary-color: #D4AF37; /* 金色 */
+            --bg-color: #Fdfbf7; /* 宣纸白 */
+            --text-color: #333;
+        }
+        body {
+            font-family: "Kaiti", "STKaiti", "KaiTi_GB2312", serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="%23d4af37" fill-opacity="0.1"><circle cx="50" cy="50" r="2"/></g></svg>');
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border: 2px solid var(--secondary-color);
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .header p {
+            color: #666;
+            font-style: italic;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #a00000;
+        }
+        #reportArea {
+            display: none;
+            margin-top: 40px;
+            border-top: 2px dashed var(--secondary-color);
+            padding-top: 20px;
+        }
+        .section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #fafafa;
+            border-left: 4px solid var(--secondary-color);
+        }
+        .section h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        .price-tag {
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 30px; 
+            padding: 10px;
+            background: #fff8e1;
+            border: 1px solid var(--secondary-color);
+        }
+        .disclaimer {
+            font-size: 0.8em;
+            color: #999;
+            text-align: center;
+            margin-top: 50px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .download-btn {
+            background-color: var(--secondary-color);
+            color: #000;
+            margin-top: 20px;
+        }
+        /* 打印样式 */
+        @media print {
+            body { background: #fff; }
+            .container { box-shadow: none; border: none; width: 100%; }
+            .no-print { display: none; }
+        }
+        .loading {
+            text-align: center;
+            display: none;
+            font-size: 1.2em;
+            color: var(--secondary-color);
+            padding: 20px;
+        }
+        .gua-symbol {
+            font-size: 4em;
+            line-height: 1;
+            color: var(--primary-color);
+            float: right;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="reportContent">
+    <div class="header">
+        <h1>AI 易经算命系统</h1>
+        <p>融合姓名学 · 生辰八字 · 数字基因 · 五行生克</p>
+    </div>
+
+    <!-- 输入区域 --> 
+    <div id="inputArea" class="no-print"> 
+        <div class="form-group"> 
+            <label>1. 姓名 (分析文化背景与期望)</label> 
+            <input type="text" id="userName" placeholder="例如：王建国"> 
+        </div> 
+        <div class="form-group"> 
+            <label>2. 出生年月日时 (分析时空能量)</label> 
+            <input type="datetime-local" id="birthDate"> 
+        </div> 
+        <div class="form-group"> 
+            <label>3. 手机后四位 (分析数字基因平衡)</label> 
+            <input type="text" id="phoneTail" maxlength="4" placeholder="例如：8899"> 
+        </div> 
+        <button onclick="generateReport()">启动智能体军团分析</button> 
+    </div> 
+
+    <!-- 报告区域 --> 
+    <div id="reportArea"> 
+        <div class="section"> 
+            <h3>📜 姓名文化解码</h3> 
+            <p id="nameAnalysis"></p> 
+        </div> 
+        <div class="section"> 
+            <h3>🕰️ 时空生辰映射</h3> 
+            <p id="timeAnalysis"></p> 
+        </div> 
+        <div class="section"> 
+            <h3>🔢 四数基因平衡</h3> 
+            <p id="numberAnalysis"></p> 
+        </div> 
+        <div class="section"> 
+            <h3>☯️ 易经综合卦象</h3>            <p id="ichingResult"></p> 
+        </div> 
+
+        <div class="price-tag no-print"> 
+            <p>专业服务定价：<strong>¥66 (基础) | ¥88 (标准) | ¥99 (尊享)</strong></p> 
+            <p style="font-size:0.9em; color:#666;">请扫描线下二维码支付或联系管理员</p> 
+        </div> 
+
+        <button class="download-btn no-print" onclick="downloadReport()">下载报告至 SUANMING 文件夹</button> 
+    </div> 
+
+    <div class="disclaimer"> 
+        ⚠️ 免责声明：本报告基于 AI 对传统文化数据的模拟分析，仅供娱乐与文化研究参考，不具备科学预测功能。请勿迷信，命运掌握在自己手中。系统不存储任何个人敏感信息。 
+    </div> 
+</div> 
+
+<script> 
+    // 模拟智能体军团的分析逻辑 
+    function generateReport() { 
+        const name = document.getElementById('userName').value; 
+        const birth = document.getElementById('birthDate').value; 
+        const phone = document.getElementById('phoneTail').value; 
+
+        if(!name || !birth || !phone) { 
+            alert("请完整填写所有信息以启动分析引擎。"); 
+            return; 
+        } 
+
+        // 1. 姓名分析 Agent 
+        let nameText = `用户 <strong>${name}</strong> 的姓名分析：<br>`; 
+        if(name.includes("建") || name.includes("国")) nameText += "【时代印记】名字带有明显的政治色彩或建国纪念意义，父辈可能具有深厚的家国情怀。<br>"; 
+        else if(name.includes("强") || name.includes("伟")) nameText += "【父母期望】寄托了希望子女强大、伟大的强烈期望值。<br>"; 
+        else if(name.includes("青") || name.includes("海")) nameText += "【地域映射】可能隐含出生地（如青海）或父母对自然色彩的偏好。<br>"; 
+        else if(name.includes("文") || name.includes("学")) nameText += "【文化背景】显示家庭对受教育程度和文化修养的重视。<br>"; 
+        else nameText += "【文化寓意】名字音韵和谐，五行流通，蕴含无限潜能与美好祝愿。<br>";
+        nameText += "综合来看，该名字五行属性偏向文化传承与社会责任。"; 
+
+        // 2. 生辰分析 Agent 
+        const dateObj = new Date(birth); 
+        const hour = dateObj.getHours(); 
+        let timeText = `出生于 <strong>${birth.replace('T', ' ')}</strong>。<br>`; 
+        timeText += `【年龄段分析】属于 ${getAgeGroup(dateObj)} 群体，正值人生 ${getLifeStage(dateObj)} 阶段。<br>`; 
+        timeText += `【时辰吉利】${hour} 时出生，`; 
+        if(hour >= 5 && hour < 7) timeText += "卯时，五行属木，象征生机与成长，吉利度较高。<br>"; 
+        else if(hour >= 11 && hour < 13) timeText += "午时，五行属火，象征热情与活力，能量强劲。<br>"; 
+        else timeText += "时辰五行需结合具体日期推算，整体数字映射显示稳定性良好。<br>"; 
+
+        // 3. 数字基因 Agent 
+        let numSum = 0; 
+        for(let char of phone) numSum += parseInt(char); 
+        let numberText = `手机尾号 <strong>${phone}</strong> 分析：<br>`; 
+        numberText += `【数字偏好】用户倾向于选择 ${numSum > 20 ? '高能量' : '平稳'} 的数字组合。<br>`; 
+        numberText += `【色彩属性】基于河图洛书，该组合映射为 <strong>${getNumberColor(numSum)}</strong> 色能量。<br>`; 
+        numberText += `【四数基因平衡】根据四数基因研究成果，该组合的随机性影响系数为 ${Math.random().toFixed(2)}，左右天平平衡性 ${numSum % 2 === 0 ? '良好 (偶数平衡)' : '动态 (奇数活跃)'}。<br>`; 
+
+        // 4. 易经合成 Agent 
+        const hexagrams = ["乾为天", "坤为地", "水雷屯", "山水蒙", "水天需", "天水讼", "地水师", "水地比"]; 
+        const randomHex = hexagrams[Math.floor(Math.random() * hexagrams.length)]; 
+        let ichingText = `综合卦象：<strong>${randomHex}</strong>。<br>`; 
+        ichingText += "五行生克推演显示，姓名之木与数字之火相生，生辰之土得位。建议近期多关注人际关系与内心平衡，顺势而为。"; 
+
+        // 渲染结果 
+        document.getElementById('nameAnalysis').innerHTML = nameText; 
+        document.getElementById('timeAnalysis').innerHTML = timeText; 
+        document.getElementById('numberAnalysis').innerHTML = numberText; 
+        document.getElementById('ichingResult').innerHTML = ichingText; 
+
+        document.getElementById('inputArea').style.display = 'none'; 
+        document.getElementById('reportArea').style.display = 'block'; 
+    } 
+
+    // 辅助函数 
+    function getAgeGroup(date) { 
+        const age = new Date().getFullYear() - date.getFullYear(); 
+        if(age < 18) return "青少年";        
+        if(age < 40) return "青年"; 
+        if(age < 60) return "中年"; 
+        return "老年"; 
+    } 
+    function getLifeStage(date) { 
+        const age = new Date().getFullYear() - date.getFullYear(); 
+        if(age < 30) return "积累期"; 
+        if(age < 50) return "爆发期"; 
+        return "收获期"; 
+    } 
+    function getNumberColor(sum) { 
+        if(sum % 5 === 0) return "黄 (土)"; 
+        if(sum % 5 === 1) return "白 (金)"; 
+        if(sum % 5 === 2) return "黑 (水)"; 
+        if(sum % 5 === 3) return "绿 (木)"; 
+        return "红 (火)"; 
+    } 
+
+    function downloadReport() { 
+        alert("提示：浏览器将弹出保存对话框，请您手动选择或新建 'SUANMING' 文件夹进行保存。"); 
+        const content = document.documentElement.outerHTML; 
+        const blob = new Blob([content], {type: 'text/html'}); 
+        const url = URL.createObjectURL(blob); 
+        const a = document.createElement('a'); 
+        a.href = url; 
+        const name = document.getElementById('userName').value || "缘主";
+        a.download = `AI_EyeChing_Report_${name}_${new Date().getTime()}.html`; 
+        document.body.appendChild(a); 
+        a.click(); 
+        document.body.removeChild(a); 
+    } 
+</script> 
+
+</body> 
+</html>

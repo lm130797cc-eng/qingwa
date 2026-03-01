@@ -1,0 +1,57 @@
+[
+  {
+    "id": "GHOST-1772282769788",
+    "created_at": "2026-02-28T12:46:09.788Z",
+    "service_type": "expert_naming",
+    "service_price": 88,
+    "review_status": "pending",
+    "users": {
+      "ref_code": "ANT-TEST-001",
+      "country_code": "US",
+      "city": "New York"
+    },
+    "chineseReport": {
+      "summary": "Based on birth time 2024-02-28 08:00, the element Water is needed. Recommended names: Ze (泽), Run (润).",
+      "full": {
+        "bazi": "甲辰 丙寅 戊午 庚申",
+        "missingElement": "水",
+        "names": [
+          {
+            "char": "泽",
+            "pinyin": "Ze",
+            "wuxing": "水",
+            "meaning": "Beneficence, Pool",
+            "hexagram": "Dui (Lake)",
+            "score": 98
+          },
+          {
+            "char": "润",
+            "pinyin": "Run",
+            "wuxing": "水",
+            "meaning": "Moisten, Profit",
+            "hexagram": "Kan (Water)",
+            "score": 95
+          }
+        ],
+        "report_zh": "Based on birth time 2024-02-28 08:00, the element Water is needed. Recommended names: Ze (泽), Run (润)."
+      }
+    },
+    "translated_report": {
+      "lang": "en",
+      "summary": "Mock AI Response...",
+      "full_content": "Mock AI Response",
+      "tabooWarning": null,
+      "compliance": {
+        "disclaimer": "For cultural entertainment reference only. Not fortune-telling.",
+        "version": "v2.1"
+      }
+    },
+    "logo_url": "https://via.placeholder.com/300x300.png?text=Ze+Logo+(SD)",
+    "logo_engine": "n8n+SD",
+    "logo_prompt": "Mock AI Response",
+    "compliance_check": {
+      "passed": true,
+      "details": "Ghost Auto-Check Passed"
+    }
+  }
+]

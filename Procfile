@@ -1,0 +1,1 @@
+web: node usdt_payment_bot.js

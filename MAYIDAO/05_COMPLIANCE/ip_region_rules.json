@@ -1,0 +1,22 @@
+{
+  "rules": [
+    {
+      "region": "CN",
+      "allowed_services": ["naming", "fengshui_cultural_analysis"],
+      "banned_keywords": ["predict_future", "investment_advice", "medical_diagnosis"],
+      "age_restriction": 18
+    },
+    {
+      "region": "US",
+      "allowed_services": ["all"],
+      "compliance_note": "Must include clear entertainment disclaimer per state laws.",
+      "age_restriction": 13
+    },
+    {
+      "region": "EU",
+      "allowed_services": ["all"],
+      "compliance_note": "GDPR compliant data handling required.",
+      "age_restriction": 16
+    }
+  ]
+}

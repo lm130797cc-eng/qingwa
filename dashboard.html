@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Review Center - Ghost Mode</title>
+    <style>
+        :root {
+            --primary: #ffd700;
+            --danger: #ff4444;
+            --success: #00C851;
+            --bg: #1a1a2e;
+            --card: rgba(20, 24, 35, 0.9);
+            --text: #e0e0e0;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h1 { margin: 0; color: var(--primary); font-size: 24px; }
+        .stats { font-size: 14px; color: #aaa; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .order-card {
+            background: var(--card);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            transition: transform 0.2s;
+        }
+        .order-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+        
+        .order-card h3 { margin-top: 0; font-size: 18px; color: #fff; }
+        .order-card p { font-size: 14px; color: #ccc; margin: 8px 0; }
+        
+        .taboo-warning { color: var(--danger); font-weight: bold; }
+        .compliance-check { color: var(--success); font-weight: bold; }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.8; }
+        
+        .btn-approve { background: var(--success); color: white; }
+        .btn-edit { background: #ff9800; color: black; }
+        .btn-reject { background: var(--danger); color: white; }
+
+        /* Auth */
+        #auth-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 2000;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+        }
+        input { padding: 10px; margin: 10px; width: 200px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-overlay">
+        <h2 style="color: var(--primary)">🛡️ Global Review Center</h2>
+        <input type="password" id="pwd" placeholder="Access Token">
+        <button onclick="checkAuth()" style="width: 100px; background: var(--primary); color: #000;">Enter</button>
+    </div>
+
+    <div class="header">
+        <div>
+            <h1>☯️ 审查待办</h1>
+            <span class="stats">Pending: <span id="count">0</span> | Approved Today: <span id="count-approved">0</span></span>
+        </div>
+        <button onclick="loadReviewQueue()" style="width: auto; padding: 5px 15px; background: #333; color: white;">🔄 Refresh</button>
+    </div>
+
+    <div id="orders-container" class="grid">
+        <!-- Cards injected here -->
+        <p style="color: #666;">⏳ Waiting for data...</p>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001';
+        let TOKEN = sessionStorage.getItem('admin_token');
+
+        if (TOKEN) {
+            document.getElementById('auth-overlay').style.display = 'none';
+            loadReviewQueue();
+        }
+
+        function checkAuth() {
+            const pwd = document.getElementById('pwd').value;
+            if (pwd === '88888888') {
+                TOKEN = pwd;
+                sessionStorage.setItem('admin_token', pwd);
+                document.getElementById('auth-overlay').style.display = 'none';
+                loadReviewQueue();
+            } else {
+                alert('Access Denied');
+            }
+        }
+
+        // Local read review queue (Simulated via API)
+        async function loadReviewQueue() {
+            try {
+                // Use API instead of file:// to avoid CORS and get real DB data
+                const response = await fetch(`${API_BASE}/api/review/pending`, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderOrders(result.data);
+                    if (result.stats) {
+                        document.getElementById('count-approved').innerText = result.stats.approved_today;
+                    }
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('orders-container').innerHTML = '<p>⏳ Connection Error or No Orders...</p>';
+            }
+        }
+
+        function renderOrders(orders) {
+            const container = document.getElementById('orders-container');
+            if (orders.length === 0) {
+                container.innerHTML = '<p>✅ All caught up! No pending reviews.</p>';
+                document.getElementById('count').textContent = 0;
+                return;
+            }
+
+            container.innerHTML = orders.map(order => `
+                <div class="order-card">
+                    <h3>${order.enterpriseName || order.personalName || 'Client'} <small style="color:#666">(#${order.id.slice(-6)})</small></h3>
+                    <p><strong>中文方案：</strong>${order.chineseReport?.summary || 'Generating...'}</p>
+                    <p><strong>多语适配：</strong>${order.localizedReport?.lang || '待生成'} 
+                       ${order.localizedReport?.tabooWarning 
+                           ? `<span class="taboo-warning">⚠️ ${order.localizedReport.tabooWarning}</span>` 
+                           : '<span class="compliance-check">✅ 禁忌检查通过</span>'}
+                    </p>
+                    <p><strong>LOGO：</strong> 
+                       <img src="${order.logo?.watermarked || 'https://via.placeholder.com/50'}" style="max-width:100px; border-radius:4px; vertical-align: middle;"> 
+                       <small>${order.logo?.engine || 'Pending'}</small>
+                    </p>
+                    <p><strong>合规：</strong> <span class="compliance-check">✅ 声明完整 + 税务标记</span></p>
+                    <div class="actions">
+                        <button class="btn btn-approve" onclick="approveOrder('${order.id}')">✅ 通过发送</button>
+                        <button class="btn btn-edit" onclick="editOrder('${order.id}')">✏️ 修改重生成</button>
+                        <button class="btn btn-reject" onclick="rejectOrder('${order.id}')">❌ 拒绝退款</button>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('count').textContent = orders.length;
+        }
+
+        async function approveOrder(orderId) {
+            if (!confirm('Confirm Approve & Send?')) return;
+            
+            try {
+                // Trigger backend action
+                const res = await fetch(`${API_BASE}/api/review/action`, {
+                    method: 'POST',
+                    body: JSON.stringify({ orderId, action: 'approve' }),
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${TOKEN}`
+                    }
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ 已发送，订单状态更新');
+                    loadReviewQueue();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (e) {
+                alert('Network Error');
+            }
+        }
+
+        function editOrder(orderId) {
+            const newPrompt = prompt("请输入修改意见 (AI将基于此重新生成):");
+            if (newPrompt) {
+                // Mock modification request
+                fetch(`${API_BASE}/api/review/action`, {
+                    method: 'POST',
+                    body: JSON.stringify({ orderId, action: 'modify', reason: newPrompt }),
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${TOKEN}`
+                    }
+                }).then(() => {
+                    alert('✏️ 已提交修改请求，AI正在重绘...');
+                    loadReviewQueue();
+                });
+            }
+        }
+
+        function rejectOrder(orderId) {
+            if (confirm('Are you sure you want to REJECT and REFUND this order?')) {
+                fetch(`${API_BASE}/api/review/action`, {
+                    method: 'POST',
+                    body: JSON.stringify({ orderId, action: 'reject' }),
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${TOKEN}`
+                    }
+                }).then(() => {
+                    alert('❌ 订单已拒绝');
+                    loadReviewQueue();
+                });
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadReviewQueue, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐜 蚂蚁岛 | 文化项目捐赠</title>
+  <style>
+    body { font-family: sans-serif; background: #f9f7f2; color: #333; padding: 20px; text-align: center; }
+    .card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 400px; margin: 40px auto; }
+    h1 { color: #8b0000; margin-bottom: 10px; }
+    .amount { font-size: 36px; font-weight: bold; color: #d4af37; margin: 20px 0; }
+    .desc { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 20px; }
+    .btn { display: block; width: 100%; padding: 14px; background: #8b0000; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; text-decoration: none; }
+    .note { font-size: 12px; color: #999; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🏝️ 成为岛民</h1>
+    <p class="desc">蚂蚁岛是一个非营利性 AI + 传统文化研究社区。<br>我们需要您的支持来维持服务器运行。</p>
+    
+    <div class="amount">88 USDT</div>
+    <p style="font-size: 12px; color: #999;">(或等值 12 USD)</p>
+    
+    <ul style="text-align: left; margin: 20px 0; padding-left: 20px; font-size: 14px; color: #555;">
+      <li>✅ 解锁全站 AI 命名服务</li>
+      <li>✅ 获得 30 GAS 初始积分</li>
+      <li>✅ 开启 30% 捐赠推广奖励</li>
+      <li>✅ 永久“岛民”身份标识</li>
+    </ul>
+    
+    <a href="https://t.me/AntIslandBot?start=donate_88" class="btn" target="_blank">👉 前往 Telegram 捐赠</a>
+    
+    <div class="note">
+      声明：本支付属于“文化项目捐赠”，非商业服务购买。<br>
+      积分仅供站内兑换，不可提现。<br>
+      仅供文化娱乐参考，不涉及命运预测。
+    </div>
+  </div>
+  
+  <script>
+    // 模拟捐赠成功（测试用，实际应由 Bot 回调触发）
+    if (window.location.search.includes('success=true')) {
+        localStorage.setItem('island_member', 'true');
+        localStorage.setItem('donation_status', 'completed');
+        alert('🎉 感谢捐赠！您已成为岛民。');
+        window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

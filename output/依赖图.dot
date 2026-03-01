@@ -1,0 +1,50 @@
+﻿digraph MayijuArchitecture {
+    rankdir=TB;
+    node [shape=box, style=filled, fontname="Segoe UI"];
+
+    // Agents
+    subgraph cluster_agents {
+        label = "ProductSynth Agents";
+        style = dashed;
+        color = blue;
+        
+        Architect [label="ArchitectAgent\n(Commander)", fillcolor="#FFD700"];
+        UI_Builder [label="UI_Builder\n(Interface)", fillcolor="#ADD8E6"];
+        Workflow [label="Workflow_Automator\n(Flow Control)", fillcolor="#90EE90"];
+        Security [label="Security_Auditor\n(Safety)", fillcolor="#FF6347"];
+        CodeGen [label="Code_Generator\n(Implementation)", fillcolor="#D3D3D3"];
+        Debugger [label="Debugger\n(Fixer)", fillcolor="#FFA07A"];
+    }
+
+    // System Modules
+    subgraph cluster_modules {
+        label = "System Core";
+        style = solid;
+        color = black;
+
+        Input [label="Input Layer\n(Numerator/Denominator)", shape=ellipse];
+        Engine [label="PyramidCore\n(Calculation Layer)", shape=diamond, fillcolor="#FF69B4"];
+        DB [label="Data Store\n(Database Layer)", shape=cylinder];
+        Plugins [label="SpecialRules\n(Extension Layer)", shape=folder];
+        Output [label="Dashboard\n(UI Layer)", shape=note];
+    }
+
+    // Relationships
+    Architect -> UI_Builder [label="Delegates UI"];
+    Architect -> Workflow [label="Delegates Logic"];
+    Architect -> CodeGen [label="Delegates Coding"];
+    
+    CodeGen -> Security [label="Audits Code"];
+    Security -> CodeGen [label="Feedback"];
+    
+    Workflow -> Engine [label="Invokes"];
+    Engine -> Input [label="Reads"];
+    Engine -> DB [label="R/W"];
+    Engine -> Plugins [label="Loads"];
+    
+    UI_Builder -> Output [label="Generates"];
+    Workflow -> Output [label="Updates Data"];
+    
+    Debugger -> Workflow [label="Monitors"];
+    Debugger -> Engine [label="Fixes"];
+}

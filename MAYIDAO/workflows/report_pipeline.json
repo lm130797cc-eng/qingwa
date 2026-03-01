@@ -1,0 +1,133 @@
+{
+  "name": "AntIsland Report Pipeline v2",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook/report_gen",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "webhookId": "ant-report-gen-webhook"
+    },
+    {
+      "parameters": {
+        "command": "python D:/MAYIJU/MAYIJUN_CORE/agents/report_agent.py --order_id={{$json[\"body\"][\"order_id\"]}} --user_id={{$json[\"body\"][\"user_id\"]}} --type={{$json[\"body\"][\"service_type\"]}}"
+      },
+      "name": "Generate Report (Python)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "url": "https://api.sendgrid.com/v3/mail/send",
+        "method": "POST",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "{\n  \"personalizations\": [\n    {\n      \"to\": [\n        {\n          \"email\": \"{{$json[\"body\"][\"user_email\"]}}\"\n        }\n      ],\n      \"subject\": \"【蚂蚁岛】您的AI文化命名报告已生成！\"\n    }\n  ],\n  \"from\": {\n    \"email\": \"noreply@f8618.com\",\n    \"name\": \"AntIsland AI\"\n  },\n  \"content\": [\n    {\n      \"type\": \"text/html\",\n      \"value\": \"<h2>亲爱的用户：</h2><p>您的AI文化命名报告已生成完毕。</p><p>👉 <a href='{{$json[\"report_url\"]}}'>点击此处下载报告</a></p><br><p>感谢您的支持！<br>蚂蚁岛团队</p>\"\n    }\n  ]\n}"
+      },
+      "name": "Send Email (SendGrid)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "sendgrid_api_key",
+          "name": "SendGrid API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "{{$json[\"body\"][\"telegram_chat_id\"]}}",
+        "text": "🎉 **报告生成成功！**\n\n您的订单 `{{$json[\"body\"][\"order_id\"]}}` 已处理完毕。\n\n🔗 [点击下载报告]({{$json[\"report_url\"]}})\n\n💰 *推荐给朋友，每单立赚 19.8 GAS！*",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Send Telegram Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        500,
+        400
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_bot_token",
+          "name": "AntIsland Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": "orders",
+        "columns": "report_status, report_url, completed_at",
+        "operation": "update",
+        "updateKey": "report_id",
+        "value": "{{$json[\"body\"][\"order_id\"]}}"
+      },
+      "name": "Update Supabase Status",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase_service_role",
+          "name": "AntIsland Supabase"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate Report (Python)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Report (Python)": {
+      "main": [
+        [
+          {
+            "node": "Send Email (SendGrid)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Telegram Notification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Supabase Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

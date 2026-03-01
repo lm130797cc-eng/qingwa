@@ -1,0 +1,309 @@
+# -*- coding: utf-8 -*-
+"""
+MAYIJU Solo AI Corp Generator
+Generates a comprehensive consulting report for a one-person AI agency.
+"""
+import datetime
+import sys
+import os
+import random
+
+def get_auspicious_dates():
+    """Simulate auspicious date calculation based on Five Elements"""
+    today = datetime.date.today()
+    dates = []
+    # Find 3 dates in next 30 days
+    for i in range(1, 31):
+        d = today + datetime.timedelta(days=i)
+        # Simplified logic: avoid 4, prefer 6, 8, 9
+        day_str = str(d.day)
+        score = 0
+        if '8' in day_str: score += 2
+        if '6' in day_str: score += 1
+        if '9' in day_str: score += 1
+        if '4' in day_str: score -= 2
+        
+        # Add some randomness for "heavenly intervention"
+        if score > 0 and random.random() > 0.3:
+            bagua_day = random.choice(["建日 (宜开业)", "满日 (宜丰收)", "成日 (宜签约)"])
+            dates.append({"date": d.strftime("%Y-%m-%d"), "type": bagua_day, "element": random.choice(["金", "木", "水", "火", "土"])})
+            if len(dates) >= 3:
+                break
+    return dates
+
+def generate_logo_svg():
+    """Generates a futuristic AI Agent Army logo SVG"""
+    # Colors: Gold (Wealth), Deep Blue (Tech), Purple (Mystery)
+    svg = """
+    <svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#B8860B;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="techBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#00BFFF;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#1E90FF;stop-opacity:1" />
+            </linearGradient>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        
+        <!-- Background Circle (The World/Market) -->
+        <circle cx="150" cy="150" r="140" stroke="#eee" stroke-width="1" fill="none" />
+        <circle cx="150" cy="150" r="120" stroke="#eee" stroke-width="1" fill="none" stroke-dasharray="5,5" />
+
+        <!-- The AI Legion (Orbiting Nodes) -->
+        <g id="legion">
+            <circle cx="150" cy="30" r="8" fill="url(#techBlue)" filter="url(#glow)" />
+            <circle cx="270" cy="150" r="8" fill="url(#techBlue)" filter="url(#glow)" />
+            <circle cx="150" cy="270" r="8" fill="url(#techBlue)" filter="url(#glow)" />
+            <circle cx="30" cy="150" r="8" fill="url(#techBlue)" filter="url(#glow)" />
+            
+            <circle cx="235" cy="65" r="5" fill="#ccc" />
+            <circle cx="235" cy="235" r="5" fill="#ccc" />
+            <circle cx="65" cy="235" r="5" fill="#ccc" />
+            <circle cx="65" cy="65" r="5" fill="#ccc" />
+            
+            <!-- Connection Lines -->
+            <line x1="150" y1="150" x2="150" y2="30" stroke="#ddd" stroke-width="1" />
+            <line x1="150" y1="150" x2="270" y2="150" stroke="#ddd" stroke-width="1" />
+            <line x1="150" y1="150" x2="150" y2="270" stroke="#ddd" stroke-width="1" />
+            <line x1="150" y1="150" x2="30" y2="150" stroke="#ddd" stroke-width="1" />
+        </g>
+
+        <!-- The Core (The Solo Founder) -->
+        <g transform="translate(150,150)">
+            <!-- Bagua/Hexagon Shape -->
+            <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" fill="url(#goldGradient)" stroke="#fff" stroke-width="2" filter="url(#glow)" />
+            <!-- The '1' Symbol -->
+            <text x="0" y="15" font-family="Arial" font-size="40" font-weight="bold" fill="white" text-anchor="middle">1</text>
+        </g>
+        
+        <!-- Company Name Ring -->
+        <path id="curve" d="M 60,150 A 90,90 0 0,1 240,150" fill="none" />
+        <text width="300">
+            <textPath href="#curve" startOffset="50%" text-anchor="middle" font-size="24" font-family="KaiTi" fill="#333" letter-spacing="5">
+                元启 · 智界
+            </textPath>
+        </text>
+    </svg>
+    """
+    return svg
+
+def generate_report():
+    company_name = "元启 · 智界"
+    english_name = "Origin Kai Intelligence"
+    
+    dates = get_auspicious_dates()
+    logo_svg = generate_logo_svg()
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="zh">
+    <head>
+        <meta charset="UTF-8">
+        <title>一人AI军团企业咨询报告 - {company_name}</title>
+        <style>
+            :root {{
+                --primary: #1a1a1a;
+                --gold: #d4af37;
+                --blue: #1E90FF;
+                --bg: #fdfbf7;
+            }}
+            body {{
+                font-family: 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+                background-color: var(--bg);
+                color: var(--primary);
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+            }}
+            .container {{
+                max-width: 900px;
+                margin: 0 auto;
+                background: white;
+                box-shadow: 0 0 50px rgba(0,0,0,0.05);
+            }}
+            header {{
+                background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%);
+                color: white;
+                padding: 60px 40px;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }}
+            header::after {{
+                content: "ONE";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 200px;
+                opacity: 0.03;
+                font-weight: bold;
+            }}
+            h1 {{ margin: 0; font-size: 42px; letter-spacing: 2px; }}
+            .subtitle {{ font-size: 18px; color: var(--gold); margin-top: 10px; font-weight: 300; letter-spacing: 5px; }}
+            
+            .logo-section {{
+                text-align: center;
+                margin: -50px auto 40px;
+                position: relative;
+                z-index: 10;
+            }}
+            .logo-container {{
+                display: inline-block;
+                background: white;
+                border-radius: 50%;
+                padding: 10px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            }}
+            
+            section {{ padding: 40px; border-bottom: 1px solid #eee; }}
+            h2 {{ color: var(--blue); border-left: 5px solid var(--gold); padding-left: 15px; margin-bottom: 30px; font-size: 24px; }}
+            h3 {{ color: #555; margin-top: 25px; border-bottom: 1px dashed #ddd; padding-bottom: 5px; }}
+            
+            .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }}
+            .card {{ background: #f8f9fa; padding: 20px; border-radius: 8px; border-top: 3px solid var(--blue); }}
+            .card.gold {{ border-top-color: var(--gold); }}
+            
+            .date-box {{ 
+                display: inline-block; 
+                margin: 10px; 
+                padding: 15px 25px; 
+                background: #fff; 
+                border: 1px solid var(--gold); 
+                text-align: center;
+                border-radius: 4px;
+            }}
+            .date-main {{ font-size: 20px; font-weight: bold; color: var(--gold); }}
+            .date-sub {{ font-size: 12px; color: #999; }}
+            
+            .strategy-list li {{ margin-bottom: 15px; position: relative; padding-left: 25px; }}
+            .strategy-list li::before {{ content: "➤"; color: var(--gold); position: absolute; left: 0; }}
+            
+            .footer {{ text-align: center; padding: 40px; color: #999; font-size: 12px; background: #f1f1f1; }}
+            
+            @media print {{
+                body {{ background: white; }}
+                .container {{ box-shadow: none; }}
+                header {{ -webkit-print-color-adjust: exact; }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>{company_name}</h1>
+                <div class="subtitle">{english_name}</div>
+                <p>一人即军团 · 万象归一元</p>
+            </header>
+            
+            <div class="logo-section">
+                <div class="logo-container">
+                    {logo_svg}
+                </div>
+            </div>
+            
+            <section>
+                <h2>01. 命名玄机与品牌定位</h2>
+                <div class="grid">
+                    <div>
+                        <h3>命名解析</h3>
+                        <p><strong>元 (Origin/One)</strong>：代表创始者、唯一的“人”、万物的起源。对应乾卦，统御全局。</p>
+                        <p><strong>启 (Kai/Start)</strong>：代表开启、启动、AI的唤醒。对应震卦，雷动万物。</p>
+                        <p><strong>智 (Intelligence)</strong>：代表核心资产、AI军团。对应坎卦，智慧如水。</p>
+                        <p><strong>界 (World/Field)</strong>：代表业务疆域、全领域覆盖。对应坤卦，厚德载物。</p>
+                    </div>
+                    <div>
+                        <h3>品牌口号 (Slogan)</h3>
+                        <p style="font-size: 18px; font-weight: bold; color: var(--primary);">"以一人之念，御万智之军。"</p>
+                        <p><em>"One Mind, Legion of Intelligence."</em></p>
+                        <h3>视觉寓意</h3>
+                        <p>LOGO中心的金色六边形代表您（核心指挥官），周围环绕的蓝色节点代表各领域的AI Agent，它们通过网络与您紧密相连，形成一个自适应的有机生命体。</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section>
+                <h2>02. 市场咨询：一人AI军团模式</h2>
+                <p>这是对传统咨询业的降维打击。传统咨询依赖高昂的人力成本（分析师、专家），而您的模式将边际成本降至接近零。</p>
+                <div class="grid">
+                    <div class="card">
+                        <h3>优势 (Strengths)</h3>
+                        <ul>
+                            <li><strong>极速响应</strong>：秒级生成万字报告。</li>
+                            <li><strong>全知视角</strong>：跨越法律、医疗、编程、艺术的知识图谱。</li>
+                            <li><strong>零情绪损耗</strong>：7x24小时稳定输出，无内耗。</li>
+                        </ul>
+                    </div>
+                    <div class="card gold">
+                        <h3>挑战 (Challenges)</h3>
+                        <ul>
+                            <li><strong>信任构建</strong>：客户如何信任非人类专家？</li>
+                            <li><strong>深度交互</strong>：如何处理复杂的情感与非标需求？</li>
+                            <li><strong>合规风险</strong>：数据隐私与AI伦理边界。</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <section>
+                <h2>03. 业务破局点：三步走战略</h2>
+                <ul class="strategy-list">
+                    <li>
+                        <strong>第一阶段：特种兵突袭（The Specialist）</strong><br>
+                        不要试图一开始就做“全能咨询”。选择一个<strong>高痛点、高标准化</strong>的细分领域切入。
+                        <br><em>建议方向：</em>跨境电商选品分析、中小企业法律合同审查、自媒体矩阵内容生成。
+                        <br><em>打法：</em>用AI生成海量高质量案例，在社交媒体建立专家人设。
+                    </li>
+                    <li>
+                        <strong>第二阶段：SaaS化服务（The Platform）</strong><br>
+                        将您的内部Agent封装成API或网页工具。客户不再直接咨询您，而是订阅您的“数字员工”。
+                        <br><em>例如：</em>“月费399元，聘请您的AI法律顾问”。
+                    </li>
+                    <li>
+                        <strong>第三阶段：生态共生（The Ecosystem）</strong><br>
+                        您作为核心节点，连接其他人类专家与AI军团。人类专家负责最后的“情感确认”与“背书”，AI负责99%的工作。
+                    </li>
+                </ul>
+            </section>
+            
+            <section>
+                <h2>04. 开业良辰吉日</h2>
+                <p>根据五行生克与八卦择日法，为您精选未来30天内的最佳启动日期：</p>
+                <div style="text-align: center;">
+                    {"".join([f'<div class="date-box"><div class="date-main">{d["date"]}</div><div class="date-sub">{d["type"]} · 五行属{d["element"]}</div></div>' for d in dates])}
+                </div>
+                <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #666;">
+                    *注：开业当日建议穿着金色或蓝色系服饰，以应天时地利。
+                </p>
+            </section>
+            
+            <div class="footer">
+                <p>MAYIJU INTELLIGENCE STRATEGY GROUP</p>
+                <p>本报告由 MAYIJU 认知中枢 Bagua Agent 生成</p>
+                <p>唯一编号: {random.randint(100000, 999999)}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    output_dir = "d:/MAYIJU/business_reports"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    output_path = os.path.join(output_dir, "BCRSA.html")
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(html_content)
+    print(f"Report generated at: {output_path}")
+
+if __name__ == "__main__":
+    generate_report()

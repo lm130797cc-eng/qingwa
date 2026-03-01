@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 取名对比海报 C 版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg: #FFF8DC;
+            --border: #e0e0e0;
+            --bad: #b0bec5;
+            --good: #00C853;
+            --accent: #FF4500;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'KaiTi', 'STKaiti', serif;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .poster {
+            width: 360px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+            padding: 20px 18px 22px;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .title h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .title p {
+            margin: 4px 0 0;
+            font-size: 11px;
+            color: #757575;
+        }
+        .compare-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .card {
+            flex: 1;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 10px 10px 12px;
+            font-size: 11px;
+        }
+        .card.bad {
+            background: #eceff1;
+        }
+        .card.good {
+            background: #e8f5e9;
+            border-color: rgba(0,200,83,0.4);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .card-header span.icon {
+            font-size: 14px;
+        }
+        ul {
+            margin: 0;
+            padding-left: 16px;
+        }
+        li {
+            margin: 4px 0;
+        }
+        .arrow-block {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .arrow-block .arrow {
+            font-size: 18px;
+            margin: 2px 0;
+        }
+        .arrow-block .choice {
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .cta-section {
+            margin-top: 10px;
+            border-radius: 16px;
+            border: 1px dashed var(--border);
+            padding: 10px 10px 12px;
+            font-size: 11px;
+            text-align: center;
+        }
+        .cta-main {
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .cta-main span {
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .cta-sub {
+            color: #616161;
+        }
+    </style>
+</head>
+<body>
+    <div class="poster">
+        <div class="title">
+            <h1>传统取名 VS AI 智能取名</h1>
+            <p>为抖音 / 小红书设计的对比海报</p>
+        </div>
+        <div class="compare-row">
+            <div class="card bad">
+                <div class="card-header">
+                    <span class="icon">❌</span>
+                    <span>传统取名</span>
+                </div>
+                <ul>
+                    <li>找命理师：3000 元起</li>
+                    <li>等待 7 天出结果</li>
+                    <li>结果不满意难以修改</li>
+                </ul>
+            </div>
+            <div class="card good">
+                <div class="card-header">
+                    <span class="icon">✅</span>
+                    <span>AI 智能取名</span>
+                </div>
+                <ul>
+                    <li>建议支持：99 元</li>
+                    <li>30 秒交付完整报告</li>
+                    <li>不满意可免费重做</li>
+                </ul>
+            </div>
+        </div>
+        <div class="arrow-block">
+            <div class="arrow">⬅️⬅️⬅️  VS  ⬆️⬆️⬆️</div>
+            <div class="choice">选择蚂蚁军团 · 让 AI 和八卦一起为你选名</div>
+        </div>
+        <div class="cta-section">
+            <div class="cta-main">前 3 位体验者 · <span>全额免支持费</span></div>
+            <div class="cta-sub">评论或私信 “取名 + 宝宝信息” 即可领取示例报告</div>
+        </div>
+    </div>
+</body>
+</html>
+

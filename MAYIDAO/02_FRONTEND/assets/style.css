@@ -1,0 +1,101 @@
+/* 
+  MAYIDAO - Ant Island
+  Core Styles - Mobile First, New Chinese Aesthetic
+*/
+:root {
+  --primary-color: #8B0000; /* Deep Red */
+  --secondary-color: #D4AF37; /* Gold */
+  --bg-color: #FDFBF7; /* Paper White */
+  --text-color: #333;
+  --font-family: "KaiTi", "STKaiti", serif;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 480px; /* Mobile optimal */
+  background: #fff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: linear-gradient(135deg, var(--primary-color), #5e0000);
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 4px solid var(--secondary-color);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+}
+
+main {
+  padding: 20px;
+  flex: 1;
+}
+
+.card {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  margin-top: 10px;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.8rem;
+  color: #999;
+  border-top: 1px solid #eee;
+}
+
+/* Utilities */
+.text-center { text-align: center; }
+.hidden { display: none; }
+.gold-text { color: var(--secondary-color); }

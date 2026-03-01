@@ -1,0 +1,50 @@
+agent_name: gateway_agent
+version: 1.0.0
+description: "流量入口+路由+参数校验"
+
+trigger:
+  type: http_request
+  endpoint: "/"
+  methods: [GET, POST]
+
+input_schema:
+  type: object
+  properties:
+    service: { type: string, enum: [personal_naming, enterprise_naming] }
+    ref: { type: string, pattern: "^[A-Z0-9]{6,12}$" }  # 推荐码格式
+    user_input: { type: object }  # 姓名/年份/手机尾号等
+  required: [service]
+
+processing:
+  steps:
+    - name: validate_params
+      action: schema_check
+      on_error: return_error_page
+      
+    - name: extract_referral
+      action: |
+        if params.ref exists:
+          query users where ref_code = params.ref
+          if found: session.ref_from = found.user_id
+          else: session.ref_from = null
+          
+    - name: route_service
+      action: |
+        if params.service == "personal_naming":
+          call_agent: MAYIJUN_CORE.personal_naming_agent
+          pass_params: [user_input, session.ref_from]
+        else if params.service == "enterprise_naming":
+          call_agent: MAYIJUN_CORE.enterprise_naming_agent
+          pass_params: [user_input, session.ref_from]
+
+output_schema:
+  type: object
+  properties:
+    session_id: { type: string }
+    routing_result: { type: string }
+    next_step: { type: string, enum: [payment_page, error_page] }
+
+compliance:
+  add_disclaimer: true
+  filter_sensitive_words: [算命, 预测, 吉凶, 风水]
+  log_audit: true  # 所有请求记录日志（不含敏感数据）

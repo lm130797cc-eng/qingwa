@@ -1,0 +1,255 @@
+import datetime
+import sys
+from pathlib import Path
+
+
+def get_bagua_profile(birth_timestamp):
+    hour = birth_timestamp.hour
+    if 3 <= hour < 7:
+        gua = "震 ☳ (雷)"
+        element = "木"
+        tip = "宜用‘木’字旁，增强生机"
+    elif 7 <= hour < 11:
+        gua = "离 ☲ (火)"
+        element = "火"
+        tip = "宜用‘日’‘光’类字，助运昌盛"
+    elif 11 <= hour < 15:
+        gua = "坤 ☷ (地)"
+        element = "土"
+        tip = "宜稳重之名，如安、宁、厚"
+    elif 15 <= hour < 19:
+        gua = "兑 ☱ (泽)"
+        element = "金"
+        tip = "宜用‘金’‘玉’类字，增贵气"
+    else:
+        gua = "坎 ☵ (水)"
+        element = "水"
+        tip = "宜用‘水’‘雨’类字，顺势而为"
+    return {"gua": gua, "element": element, "tip": tip}
+
+
+def generate_names(base_name, element):
+    char_map = {
+        "木": ["森", "林", "桐", "楷", "栋"],
+        "火": ["炎", "煜", "炜", "灿", "昕"],
+        "土": ["坤", "城", "培", "坚", "峰"],
+        "金": ["鑫", "铭", "锐", "锋", "钧"],
+        "水": ["涵", "涛", "霖", "浩", "泽"],
+    }
+    chars = char_map.get(element, ["轩", "睿", "宸", "霖", "锦"])
+    return [f"{base_name}{char}" for char in chars[:6]]
+
+
+def make_report(name, gender, birthday_str, output_dir="reports"):
+    try:
+        birth = datetime.datetime.fromisoformat(birthday_str)
+    except Exception:
+        print("❌ 时间格式错误，请使用 YYYY-MM-DDTHH:MM:SS")
+        return
+    profile = get_bagua_profile(birth)
+    names = generate_names(name, profile["element"])
+    Path(output_dir).mkdir(exist_ok=True)
+    filename = f"{output_dir}/report_{name}_{birth.strftime('%H%M')}.html"
+    element_color_map = {
+        "木": "#228B22",
+        "火": "#FF4500",
+        "土": "#D2691E",
+        "金": "#FFD700",
+        "水": "#1E90FF",
+    }
+    accent_color = element_color_map.get(profile["element"], "#d4af37")
+    html = f"""
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>宝宝取名分析报告</title>
+        <style>
+            :root {{
+                --accent-color: {accent_color};
+            }}
+            body {{
+                font-family: 'KaiTi', 'STKaiti', serif;
+                background: #f9f7f3;
+                margin: 0;
+                padding: 40px;
+            }}
+            .report-card {{
+                max-width: 800px;
+                margin: auto;
+                background: #ffffff;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                position: relative;
+                overflow: hidden;
+            }}
+            .watermark {{
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: rgba(0,0,0,0.04);
+                font-size: 80px;
+                font-weight: bold;
+                pointer-events: none;
+                z-index: 1;
+                letter-spacing: 8px;
+            }}
+            header.report-header {{
+                background: linear-gradient(135deg, #d4af37, #a67c00);
+                color: #ffffff;
+                padding: 30px;
+                text-align: center;
+                border-radius: 15px 15px 0 0;
+            }}
+            header.report-header h1 {{
+                margin: 0;
+                font-size: 32px;
+            }}
+            header.report-header p {{
+                margin: 10px 0 0;
+                opacity: 0.9;
+            }}
+            section.content {{
+                padding: 40px;
+                position: relative;
+                z-index: 2;
+            }}
+            table.base-info {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 30px;
+            }}
+            table.base-info td {{
+                padding: 8px 0;
+                font-size: 16px;
+                color: #212121;
+            }}
+            .divider {{
+                border: 0;
+                height: 1px;
+                margin: 30px 0;
+                background-image: linear-gradient(to right, transparent, rgba(0,0,0,0.15), transparent);
+            }}
+            h2 {{
+                font-size: 24px;
+                margin: 30px 0 15px;
+                padding-left: 15px;
+                border-left: 5px solid var(--accent-color);
+                background: linear-gradient(to right, #fffde7, #ffffff);
+                position: relative;
+                color: #3e2723;
+            }}
+            h2::before {{
+                content: "☵";
+                position: absolute;
+                left: -30px;
+                top: 0;
+                color: var(--accent-color);
+                font-size: 20px;
+            }}
+            h2.title-names::before {{
+                content: "🧸";
+            }}
+            h2.title-reading::before {{
+                content: "📜";
+            }}
+            ul.name-list {{
+                line-height: 2;
+                padding-left: 20px;
+            }}
+            ul.name-list li {{
+                margin-bottom: 8px;
+                color: #212121;
+            }}
+            .reading {{
+                text-indent: 2em;
+                line-height: 1.8;
+                color: #424242;
+            }}
+            .reading::first-letter {{
+                font-size: 1.8em;
+                font-weight: bold;
+                margin-right: 4px;
+            }}
+            footer.report-footer {{
+                background: #f0f0f0;
+                padding: 20px;
+                text-align: center;
+                font-size: 0.9em;
+                color: #666666;
+                border-radius: 0 0 15px 15px;
+                position: relative;
+            }}
+            footer.report-footer::before {{
+                content: "· · · · ·";
+                display: block;
+                margin-bottom: 8px;
+                letter-spacing: 6px;
+                color: var(--accent-color);
+            }}
+            .element-tag {{
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 999px;
+                border: 1px solid var(--accent-color);
+                color: var(--accent-color);
+                font-size: 0.85em;
+                margin-left: 8px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="report-card">
+            <div class="watermark">☰☱☲☳☴☵☶☷</div>
+            <header class="report-header">
+                <h1>🧧 宝宝取名分析报告</h1>
+                <p>AI × 易经 × 数学哲学 · 智能命名系统</p>
+            </header>
+            <section class="content">
+                <table class="base-info">
+                    <tr><td><strong>👶 姓名：</strong>{name}</td><td><strong>🚻 性别：</strong>{gender}</td></tr>
+                    <tr><td colspan="2"><strong>⏰ 出生时间：</strong>{birthday_str}</td></tr>
+                </table>
+                <hr class="divider">
+                <h2>☵ 八卦命盘<span class="element-tag">{profile['element']}</span></h2>
+                <p>生于{birth.strftime('%H:%M')}，属 {profile['gua']}，五行主 <strong>{profile['element']}</strong></p>
+                <p>👉 <em>{profile['tip']}</em></p>
+                <h2 class="title-names">🎯 推荐名字</h2>
+                <ul class="name-list">
+    """
+    for n in names:
+        html += f"<li style='margin-bottom: 8px;'>{n} <small style='color: #666;'>（音律优美，五格吉利）</small></li>"
+    html += f"""
+                </ul>
+                <h2 class="title-reading">📜 命理解读</h2>
+                <p class="reading">此名生于{profile['gua']}，格局清正，宜早立目标。青年时期多变动，中年后渐入佳境。名字中带‘{profile['element']}’元素者，可增运势。</p>
+            </section>
+            <footer class="report-footer">
+                报告生成于 {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}<br>
+                © 2026 八卦计算机意识系统 · 数学哲学驱动的智能命名<br>
+                <em>注：本报告由 AI 自动生成，仅供文化参考。</em>
+            </footer>
+        </div>
+    </body>
+    </html>
+    """
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(html)
+    print(f"✅ 报告已生成：{filename}")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 8:
+        print("📌 使用方法：")
+        print("   python name_generator_v2.py <姓名> <性别> <年> <月> <日> <时> <分>")
+        print("   示例：")
+        print("   python name_generator_v2.py 子涵 男 2026 03 01 06 30")
+    else:
+        name = sys.argv[1]
+        gender = sys.argv[2]
+        try:
+            year, month, day, hour, minute = map(int, sys.argv[3:8])
+            birthday_str = f"{year:04d}-{month:02d}-{day:02d}T{hour:02d}:{minute:02d}:00"
+            make_report(name, gender, birthday_str)
+        except Exception as e:
+            print(f"❌ 参数错误：{e}")

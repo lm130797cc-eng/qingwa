@@ -1,0 +1,7 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Silver Ring -->
+  <circle cx="32" cy="32" r="30" stroke="#C0C0C0" stroke-width="2" fill="none" />
+  <!-- Octagon Segments (Simplified) -->
+  <path d="M32 2 L53 11 L62 32 L53 53 L32 62 L11 53 L2 32 L11 11 Z" fill="#2c3e50" stroke="#d4af37" stroke-width="1" />
+  <text x="32" y="40" font-family="Arial" font-size="20" text-anchor="middle" fill="#d4af37" font-weight="bold">AI</text>
+</svg>

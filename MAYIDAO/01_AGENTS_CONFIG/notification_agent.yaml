@@ -1,0 +1,78 @@
+# Notification Agent Configuration v2
+# Handles user notifications via Email, Telegram, and In-App messages
+
+agent_name: notification_agent
+description: "Orchestrates multi-channel notifications for orders and referrals"
+version: 2.0.0
+schema_version: "1.0"
+
+# 📡 Channels Configuration
+channels:
+  telegram:
+    enabled: true
+    bot_token: ${TELEGRAM_BOT_TOKEN}
+    retry_policy:
+      max_attempts: 3
+      backoff: exponential
+
+  email:
+    enabled: true
+    provider: sendgrid
+    api_key: ${SENDGRID_API_KEY}
+    from_email: "noreply@f8618.com"
+    from_name: "AntIsland AI"
+
+  in_app:
+    enabled: true
+    persistence: supabase  # Store in 'notifications' table (if exists) or gas_logs
+
+# 📨 Event Templates
+templates:
+  order_success:
+    telegram: |
+      ✅ **订单支付成功！**
+      订单号：`{{order_id}}`
+      金额：{{amount}} USDT
+      报告正在生成中，预计 30秒内送达。
+    email:
+      subject: "【蚂蚁岛】订单支付确认 {{order_id}}"
+      body_html: "D:/MAYIJU/MAYIDAO/templates/email/order_success.html"
+
+  report_ready:
+    telegram: |
+      🎉 **您的报告已就绪！**
+      🔗 [点击下载报告]({{report_url}})
+      
+      💡 觉得准吗？分享给朋友，每单立赚 19.8 GAS！
+      您的推荐码：`{{ref_code}}`
+    email:
+      subject: "【交付】您的AI文化命名报告已生成"
+      body_html: "D:/MAYIJU/MAYIDAO/templates/email/report_ready.html"
+
+  referral_bonus:
+    telegram: |
+      💰 **GAS 到账提醒**
+      恭喜！您邀请的朋友刚刚下单。
+      奖励：+{{amount}} GAS
+      当前余额：{{new_balance}} GAS
+    in_app:
+      title: "推荐奖励到账"
+      body: "您获得了 {{amount}} GAS 推荐奖励！"
+
+# ⚙️ Workflow Hooks
+workflows:
+  on_payment_verified:
+    - action: send_telegram
+      template: order_success
+    - action: trigger_n8n_pipeline
+
+  on_report_generated:
+    - action: send_email
+      template: report_ready
+    - action: send_telegram
+      template: report_ready
+
+  on_gas_earned:
+    - action: send_telegram
+      template: referral_bonus
+      condition: "user.telegram_chat_id IS NOT NULL"

@@ -1,0 +1,34 @@
+agent_name: referral_agent
+version: 1.0.0
+description: "推荐关系追踪 + GAS积分自动结算"
+
+trigger:
+  type: event
+  events: [user_registered, order_completed]
+
+database:
+  type: supabase
+  connection: ${SUPABASE_URL}  # 从环境变量读取
+  tables: [users, gas_logs]
+
+logic:
+  on_user_registered:
+    - generate_ref_code: "ANT" + random_hex(8)  # 如 ANT7F3A9B2C
+    - insert_user: { ref_code, ref_from, gas_balance: 30 }  # 注册送30积分
+    - if ref_from exists:
+        add_gas: { user_id: ref_from, amount: 10, reason: "invite_bonus" }
+        notify: { type: "system_msg", content: "您邀请的朋友已注册，+10 GAS" }
+        
+  on_order_completed:
+    - calculate_reward: order_amount * 0.3  # 30%返积分
+    - add_gas: { user_id: order.ref_from, amount: reward, reason: "purchase_reward" }
+    - update_user_stats: { total_earnings += reward }
+
+output:
+  type: webhook
+  endpoint: "/api/notify/gas_update"
+  payload: { user_id, new_balance, change_reason }
+
+rate_limit:
+  per_user: 100/hour  # 防刷积分
+  global: 1000/hour
