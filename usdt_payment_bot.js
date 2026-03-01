@@ -197,10 +197,14 @@ const CONFIG = {
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseKey: process.env.SUPABASE_SERVICE_KEY,
   
-  // USDT (TRC20)
+  // USDT (TRC20/EVM)
   walletAddress: process.env.USDT_WALLET_ADDRESS, // 您的收款地址
+  chainType: (process.env.USDT_WALLET_ADDRESS || '').startsWith('T') ? 'TRON' : 'EVM', // 自动识别链类型
   minConfirmations: 20, // 最小确认数（防回滚）
   tronScanApi: 'https://api.tronscan.org/api/transaction-info',
+  evmApi: 'https://api.bscscan.com/api', // 默认 BSC (Binance Smart Chain)
+  evmUsdtContract: '0x55d398326f99059fF775485246999027B3197955', // BSC-USD (BEP20)
+  evmDecimals: 18, // BSC-USD 是 18 位 (ERC20 USDT 是 6 位)
   exchangeRate: 100, // 1 USDT = 100 GAS (默认汇率，实际按订单或策略)
   minUsdt: 1, // 最小 1 USDT (测试用，生产可调)
   donationUsdt: Number(process.env.DONATION_USDT || 12),
@@ -332,7 +336,68 @@ async function ensureTelegramUser(telegramUserId) {
   return created;
 }
 
-// ========== 核心：交易核验 ==========
+// ========== 核心：交易核验 (双链适配) ==========
+
+async function fetchTronTransaction(txid) {
+    try {
+        const response = await fetch(`${CONFIG.tronScanApi}?hash=${txid}`, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) return { success: false, message: `TronScan API Error: ${response.status}` };
+        
+        const txData = await response.json();
+        if (!txData || txData.Error) return { success: false, error: 'TX_NOT_FOUND', message: '❌ 交易未找到，请确认 TXID' };
+        if (txData.contractRet !== 'SUCCESS') return { success: false, error: 'TX_FAILED', message: '❌ 交易执行失败' };
+
+        let transfer = txData.tokenTransferInfo || txData.contractData;
+        if (!transfer) return { success: false, error: 'NO_TRANSFER', message: '❌ 未识别到转账信息' };
+
+        // TRX 特殊处理
+        if (txData.contractData && !transfer.token_name) transfer.symbol = 'TRX';
+        
+        const symbol = (transfer.symbol || transfer.tokenAbbr || '').toUpperCase();
+        const to = transfer.to_address;
+        const amount = parseFloat(transfer.amount_str || transfer.amount || 0) / 1000000; // TRC20 6 decimals
+
+        return { success: true, data: { amount, to, token: symbol } };
+    } catch (e) {
+        return { success: false, message: `TronScan Error: ${e.message}` };
+    }
+}
+
+async function fetchEvmTransaction(txid) {
+    try {
+        // 使用 eth_getTransactionReceipt 获取回执
+        const url = `${CONFIG.evmApi}?module=proxy&action=eth_getTransactionReceipt&txhash=${txid}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (!data.result) return { success: false, error: 'TX_NOT_FOUND', message: '❌ 交易未找到 (请确认 TXID)' };
+        const receipt = data.result;
+        
+        if (receipt.status !== '0x1') return { success: false, error: 'TX_FAILED', message: '❌ 交易失败 (EVM Reverted)' };
+        
+        // Transfer 事件签名 (ERC20)
+        const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+        // 构建目标地址 Topic (补齐 64 位)
+        const targetTopic = '0x000000000000000000000000' + CONFIG.walletAddress.replace(/^0x/, '').toLowerCase();
+        
+        // 查找符合条件的 Log: Topic0=Transfer, Topic2=ToMe, Address=USDT_Contract
+        const log = receipt.logs.find(l => 
+            l.topics[0].toLowerCase() === transferTopic && 
+            l.topics[2].toLowerCase() === targetTopic &&
+            l.address.toLowerCase() === CONFIG.evmUsdtContract.toLowerCase()
+        );
+
+        if (!log) return { success: false, error: 'NO_TRANSFER', message: '❌ 未找到有效 USDT 转入记录 (请检查合约地址)' };
+
+        const amountWei = BigInt(log.data);
+        const decimals = BigInt(10 ** CONFIG.evmDecimals);
+        const amount = Number(amountWei * 10000n / decimals) / 10000; // 保留 4 位小数
+
+        return { success: true, data: { amount, to: CONFIG.walletAddress, token: 'USDT' } };
+    } catch (e) {
+        return { success: false, message: `EVM Scan Error: ${e.message}` };
+    }
+}
 
 async function verifyTransaction(txid, telegramUserId) {
   try {
@@ -340,73 +405,32 @@ async function verifyTransaction(txid, telegramUserId) {
       return { success: true, message: '✅ 该交易已处理', duplicate: true };
     }
 
-    // 1. 调用 TronScan API 查询交易详情
-    const response = await fetch(`${CONFIG.tronScanApi}?hash=${txid}`, {
-      headers: { 'Accept': 'application/json' }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`TronScan API error: ${response.status}`);
-    }
-    
-    const txData = await response.json();
-    
-    // 2. 基础校验
-    if (!txData || txData.Error) { // Tronscan 错误返回
-      return { success: false, error: 'TX_NOT_FOUND', message: '❌ 交易未找到，请确认 TXID 正确' };
-    }
-    
-    // 处理返回数据结构 (TronScan API 返回结构可能不同，做兼容处理)
-    // 通常结构: { contractRet: "SUCCESS", confirmed: true, contractData: { amount, to_address ... } ... }
-    
-    // 3. 状态校验
-    if (txData.contractRet !== 'SUCCESS') {
-      return { success: false, error: 'TX_FAILED', message: '❌ 交易执行失败 (Contract Failed)' };
+    // 1. 获取链上数据
+    let fetchResult;
+    if (CONFIG.chainType === 'TRON') {
+        fetchResult = await fetchTronTransaction(txid);
+    } else {
+        fetchResult = await fetchEvmTransaction(txid);
     }
 
-    // 4. 确认数校验 (可选，如果confirmed字段为true则已确认)
-    // 部分 API 返回 confirmed 字段
-    if (txData.confirmed === false && (!txData.confirmations || txData.confirmations < CONFIG.minConfirmations)) {
-        // 允许未完全确认但已成功的交易入账? 建议严格模式
-        // 这里简化：只要 contractRet SUCCESS 且在链上可见，暂时放行，或提示等待
-        // return { success: false, message: '⏳ 交易确认中，请稍后再试' };
+    if (!fetchResult.success) {
+        return fetchResult;
+    }
+
+    const { amount, to, token } = fetchResult.data;
+
+    // 2. 验证币种
+    if (token !== 'USDT') {
+         return { success: false, error: 'WRONG_TOKEN', message: `❌ 仅支持 USDT，检测到: ${token}` };
+    }
+
+    // 3. 验证收款地址
+    if (to.toLowerCase() !== CONFIG.walletAddress.toLowerCase()) {
+        return { success: false, error: 'WRONG_ADDRESS', message: `❌ 收款地址不匹配\n您的转入地址: ${to}` };
     }
     
-    // 5. 解析转账信息
-    let transfer = null;
-    
-    // 尝试从 tokenTransferInfo 获取 (TRC20)
-    if (txData.tokenTransferInfo) {
-        transfer = txData.tokenTransferInfo;
-    } 
-    // 尝试从 contractData 获取 (TRX 或部分 TRC20)
-    else if (txData.contractData) {
-        transfer = txData.contractData;
-        // 如果是 TRX 转账，需要单独处理精度
-        if (!transfer.token_name) transfer.symbol = 'TRX';
-    }
-    
-    if (!transfer) {
-         return { success: false, error: 'NO_TRANSFER', message: '❌ 未识别到转账信息' };
-    }
-    
-    // 6. 验证币种 (必须是 USDT)
-    const symbol = transfer.symbol || transfer.tokenAbbr || '';
-    if (symbol.toUpperCase() !== 'USDT') {
-         return { success: false, error: 'WRONG_TOKEN', message: `❌ 仅支持 USDT 入账核验，检测到: ${symbol}` };
-    }
-    
-    // 7. 验证收款地址
-    const expectedAddr = CONFIG.walletAddress;
-    const toAddr = transfer.to_address;
-    
-    if (toAddr !== expectedAddr) {
-        return { success: false, error: 'WRONG_ADDRESS', message: `❌ 收款地址不匹配\n您的转入地址: ${toAddr}` };
-    }
-    
-    // 6. 金额校验（USDT-TRC20 有 6 位小数）
-    const expectedAmount = parseFloat(transfer.amount_str || transfer.amount || 0) / 1000000;
-    
+    const expectedAmount = amount;
+
     // 查询关联订单（Phase 2）
     const order = await getOrderByTxid(txid);
     if (order) {
@@ -503,7 +527,7 @@ async function verifyTransaction(txid, telegramUserId) {
       const mm = String(time.getMinutes()).padStart(2, '0');
       const u = isDonation ? CONFIG.donationUsdt : expectedAmount;
       const who = maskRefCode(updateResult.refCode);
-      ghostOut(`💰 +${u}U | ${who} | NA | ${hh}:${mm}`);
+      ghostOut(`💰 +${u}U | ${who} | ${CONFIG.chainType} | ${hh}:${mm}`);
     }
 
     return {
