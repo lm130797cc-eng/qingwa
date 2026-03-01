@@ -2,14 +2,17 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import crypto from 'crypto';
 
 // 初始化 R2 客户端（兼容 S3 API）
-const r2 = new S3Client({
-  region: 'auto',
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY,
-    secretAccessKey: process.env.R2_SECRET_KEY,
-  },
-});
+// ⚠️ 注意：如果未配置 R2 环境变量，此模块将不会初始化客户端
+const r2 = (process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY && process.env.R2_SECRET_KEY) 
+  ? new S3Client({
+      region: 'auto',
+      endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY,
+        secretAccessKey: process.env.R2_SECRET_KEY,
+      },
+    })
+  : null;
 
 const BUCKET = 'mayidao-reports';
 
@@ -27,6 +30,10 @@ export async function uploadReportToR2(reportData, options = {}) {
   const filename = `reports/${reportId || crypto.randomUUID()}.pdf`;
    
   try {
+    if (!r2) {
+      console.warn('⚠️ R2 未配置，跳过报告上传');
+      return { success: false, reason: 'R2_NOT_CONFIGURED' };
+    }
     // 1. 上传到 R2（设置公开读 + 自动过期）
     await r2.send(new PutObjectCommand({
       Bucket: BUCKET,
