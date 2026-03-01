@@ -1,0 +1,34 @@
+name: Render Keep Alive (Anti-Sleep)
+
+on:
+  schedule:
+    # Run every 12 minutes to beat the 15-minute inactivity limit
+    - cron: '*/12 * * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub Actions tab
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up Render Instance
+        run: |
+          # 替换为您实际的 Render App URL
+          # Replace with your actual Render App URL
+          TARGET_URL="https://ant-island-payment-bot.onrender.com/health"
+          
+          echo "⚡ Sending Keep-Alive Ping to: $TARGET_URL"
+          
+          # Use curl with a timeout to prevent hanging
+          # -I: Head request (lighter)
+          # -m 30: Max time 30s
+          status_code=$(curl -o /dev/null -s -w "%{http_code}\n" -m 30 "$TARGET_URL")
+          
+          echo "Response Status: $status_code"
+          
+          if [ "$status_code" -eq 200 ]; then
+            echo "✅ Instance is Active"
+          else
+            echo "⚠️ Instance might be sleeping or error (Status: $status_code)"
+            # Try a GET request if HEAD fails, just in case
+            curl -s -m 30 "$TARGET_URL" > /dev/null
+          fi
