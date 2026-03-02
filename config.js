@@ -51,7 +51,7 @@ window.MAYIDAO_CONFIG = {
   
   // Telegram Bot 配置
   telegram: {
-    botUsername: 'AntIslandBot',
+    botUsername: 'qingwa_go_bot',
     paymentChannel: '@AntIslandPay'
   },
   

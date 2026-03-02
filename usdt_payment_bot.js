@@ -684,51 +684,56 @@ async function creditUserGas(telegramId, gasAmount, txid, orderId) {
 
 // ========== 命令处理 ==========
 
-// /start - 欢迎 + 收款地址
 bot.start(async (ctx) => {
   const userId = ctx.from.id;
   const refCode = ctx.startPayload || 'DIRECT'; // 支持 t.me/bot?start=REFCODE
   
-  // 保存/更新用户绑定关系
-  await ensureTelegramUser(userId);
-  if (/^ANT[A-Z0-9]{4,}$/i.test(refCode)) {
-    await bindExistingUserToTelegram(userId, refCode);
+  try {
+    await ensureTelegramUser(userId);
+    if (/^ANT[A-Z0-9]{4,}$/i.test(refCode)) {
+      await bindExistingUserToTelegram(userId, refCode);
+    }
+  } catch (e) {
+    ghostDebug(`⚠️ ensureTelegramUser failed: ${e?.message || e}`);
   }
-  
+
   await ctx.reply(
-    appendCompliance(`🐜 欢迎来到蚂蚁岛自动核验通道！\n\n` +
-    `📌 流程：\n` +
-    `1️⃣ 复制下方收款地址\n` +
-    `2️⃣ 用钱包转账 USDT-TRC20\n` +
-    `3️⃣ 转账成功后，发送 交易哈希(TXID) 给我\n` + 
-    `4️⃣ 我将自动核验，积分更新\n\n` +
-    `🏝️ 岛民门槛：约 88 元（≈ ${CONFIG.donationUsdt} USDT）\n` +
-    `🪙 岛民奖励：+${CONFIG.donationGasBonus} GAS\n\n` +
-    `📍 收款地址（TRC20）：\n` +
-    `<code>${CONFIG.walletAddress}</code>\n` +
-    `(点击上方地址可复制)\n\n` +
-    `⚠️ 注意：\n` +
-    `• 仅支持 USDT-TRC20（波场网络）\n` +
-    `• 单笔 ≥ ${CONFIG.minUsdt} USDT\n` +
-    `• 换算：1 USDT ≈ ${CONFIG.exchangeRate} GAS`),
-    { parse_mode: 'HTML', disable_web_page_preview: true }
+    `🐸 Welcome to Qingwa Ghost Mode!\n\n` +
+      `💰 Auto-payment service active\n` +
+      `📋 AI cultural naming reports\n` +
+      `🔐 For entertainment reference only\n\n` +
+      `Commands:\n` +
+      `/start - Start bot\n` +
+      `/help - Show help\n` +
+      `/donate - Get USDT address\n` +
+      `/status - Check order`,
+    { disable_web_page_preview: true }
   );
 });
 
-// /help - 常见问题
 bot.help((ctx) => {
   ctx.reply(
-    appendCompliance(`❓ 常见问题：\n\n` +
-    `Q: 转账后多久到账？\n` +
-    `A: 区块链确认需 2-5 分钟，核验通过后积分秒到。\n\n` +
-    `Q: 发错网络怎么办？\n` +
-    `A: 仅支持 TRC20（波场），ERC20/BEP20 无法自动找回。\n\n` +
-    `Q: 金额不对/少转了？\n` +
-    `A: 系统按实际到账金额换算积分，差额不退不补。\n\n` +
-    `Q: 没收到积分？\n` +
-    `A: 发送 /status + 您的 TXID 查询进度。\n\n` +
-    `🔧 人工支持：@AntIslandSupport`),
-    { parse_mode: 'HTML' }
+    `Commands:\n` +
+      `/start - Start bot\n` +
+      `/help - Show help\n` +
+      `/donate - Get USDT address\n` +
+      `/status <txid> - Check order\n\n` +
+      `Tips:\n` +
+      `- Send TXID directly (64 hex chars) to verify\n` +
+      `- Payments are for entertainment reference only`
+  );
+});
+
+bot.command('donate', async (ctx) => {
+  const networkName = CONFIG.chainType === 'TRON' ? 'USDT-TRC20 (Tron)' : 'USDT-ERC20 (Ethereum)';
+  await ctx.reply(
+    `💰 Donation / Payment Address\n\n` +
+      `Network: ${networkName}\n` +
+      `Address:\n` +
+      `${CONFIG.walletAddress}\n\n` +
+      `Min: ${CONFIG.minUsdt} USDT\n` +
+      `Rate: 1 USDT ≈ ${CONFIG.exchangeRate} GAS`,
+    { disable_web_page_preview: true }
   );
 });
 
@@ -737,9 +742,13 @@ bot.command('bind', async (ctx) => {
     const refCode = ctx.message.text.split(' ')[1]?.trim();
     if (!refCode) return ctx.reply(appendCompliance('❌ 请输入邀请码，例如：/bind ANT12345'));
     
-    await ensureTelegramUser(ctx.from.id);
-    await bindExistingUserToTelegram(ctx.from.id, refCode);
-    ctx.reply(appendCompliance(`✅ 绑定请求已提交 (Ref: ${refCode})`));
+    try {
+      await ensureTelegramUser(ctx.from.id);
+      await bindExistingUserToTelegram(ctx.from.id, refCode);
+      ctx.reply(appendCompliance(`✅ 绑定请求已提交 (Ref: ${refCode})`));
+    } catch (e) {
+      ctx.reply(appendCompliance('⚠️ 绑定暂不可用，请稍后重试'));
+    }
 });
 
 // /status [TXID] - 查询交易状态
