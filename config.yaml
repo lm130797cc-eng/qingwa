@@ -1,6 +1,7 @@
 global_input_paradigm: bagua_transit
 bagua_enabled: true
 bagua_representation: binary_trigrams
-agent_version: 2.0
+agent_version: 3.1
 system_mode: cognitive_core
 broadcast_channel: D:\MAYIJU\broadcast
+last_update: 2026-03-01

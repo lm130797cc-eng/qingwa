@@ -1,8 +1,8 @@
-# MAYIJU Cognitive Core - Bagua Agent v3.0
+# MAYIJU Cognitive Core - Bagua Agent v3.1
 # "D:\MAYIJU\BaguaAgent.ps1"
 # The cognitive operating system for MAYIJU.
 # Function: Transforms inputs into Binary Trigrams (Bagua) for semantic processing.
-# Principle: 3-bit Binary (0/1) instead of Unicode Symbols.
+# Principle: 3-bit Binary (0/1) ONLY.
 
 param(
     [string]$InputData = "",   # Text, Numbers, or Commands
@@ -19,6 +19,8 @@ param(
 # 6 → 010 (坎) Water/Water
 # 7 → 100 (艮) Mountain/Earth
 # 8 → 000 (坤) Earth/Earth
+# 0 → 0 (Void/Start)
+# 9 → Balance (101010)
 
 $BaguaLUT = @{
     1 = @{ bin="111"; name="Qian";  wuxing="Metal"; code=1 };
@@ -29,13 +31,15 @@ $BaguaLUT = @{
     6 = @{ bin="010"; name="Kan";   wuxing="Water"; code=6 };
     7 = @{ bin="100"; name="Gen";   wuxing="Earth"; code=7 };
     8 = @{ bin="000"; name="Kun";   wuxing="Earth"; code=8 };
+    0 = @{ bin="0";   name="Void";  wuxing="Void";  code=0 };
+    9 = @{ bin="101010"; name="Balance"; wuxing="Balance"; code=9 };
 }
 
 # --- 2. Five Elements Interaction Logic ---
-# Generating: Wood(4,5) -> Fire(3) -> Earth(7,8) -> Metal(1,2) -> Water(6) -> Wood
-# Overcoming: Wood -> Earth -> Water -> Fire -> Metal -> Wood
 function Get-WuxingRelation ($e1, $e2) {
     if ($e1 -eq $e2) { return "Resonance" }
+    if ($e1 -eq "Void" -or $e2 -eq "Void") { return "Genesis" }
+    if ($e1 -eq "Balance" -or $e2 -eq "Balance") { return "Harmony" }
     
     $cycle = @("Wood", "Fire", "Earth", "Metal", "Water")
     $idx1 = $cycle.IndexOf($e1)
@@ -43,21 +47,10 @@ function Get-WuxingRelation ($e1, $e2) {
     
     if ($idx1 -eq -1 -or $idx2 -eq -1) { return "Unknown" }
     
-    # Check Generation (Next in cycle)
-    $genIdx = ($idx1 + 1) % 5
-    if ($genIdx -eq $idx2) { return "Generates" }
-    
-    # Check Overcoming (Skip one)
-    $overIdx = ($idx1 + 2) % 5
-    if ($overIdx -eq $idx2) { return "Overcomes" }
-    
-    # Check Reverse Generation (Drains)
-    $drainIdx = ($idx1 - 1 + 5) % 5
-    if ($drainIdx -eq $idx2) { return "Drains" }
-    
-    # Check Reverse Overcoming (Insults)
-    $insultIdx = ($idx1 - 2 + 5) % 5
-    if ($insultIdx -eq $idx2) { return "Insults" }
+    # Generation
+    if (($idx1 + 1) % 5 -eq $idx2) { return "Generates" }
+    # Overcoming
+    if (($idx1 + 2) % 5 -eq $idx2) { return "Overcomes" }
     
     return "Neutral"
 }
@@ -65,7 +58,7 @@ function Get-WuxingRelation ($e1, $e2) {
 # --- 3. Processing Logic ---
 
 # A. Self-Check Mode
-if ($SelfCheck -or -not $InputData) {
+if ($SelfCheck) {
     Write-Host "[BaguaAgent] Running Self-Diagnostic Protocol..." -ForegroundColor Cyan
     $testInputs = @("123", "908", "MAYIJU")
     $InputData = $testInputs -join " "
@@ -73,41 +66,31 @@ if ($SelfCheck -or -not $InputData) {
 }
 
 # B. Extract Numbers & Map
-# Rule: Extract digits. If no digits, hash string to numbers.
 $digits = @()
 if ($InputData -match "\d") {
     $cleanNums = $InputData -replace "[^0-9]", ""
-    $digits = $cleanNums.ToCharArray() | ForEach-Object { [int]::Parse($_) }
+    $digits = $cleanNums.ToCharArray() | ForEach-Object { [int][string]$_ }
 } else {
     # Text-only input: Simple hash to numbers
-    $bytes = [System.Text.Encoding]::UTF8.GetBytes($InputData)
-    $digits = $bytes | ForEach-Object { $_ % 9 }
+    if ($InputData) {
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($InputData)
+        $digits = $bytes | ForEach-Object { $_ % 9 }
+    }
 }
 
-# C. Apply Modulo 8 Logic (0->8, 9->1)
+# C. Apply Logic
 $processedSequence = @()
 $binaryStream = ""
 $wuxingFlow = @()
 
 foreach ($d in $digits) {
-    # Core Mapping Rule:
-    # 0 -> 8
-    # 1-8 -> keep
-    # 9 -> 1 (9 % 8 = 1)
-    # >9 -> mod 8
-    
-    $mappedVal = 0
-    if ($d -eq 0) { $mappedVal = 8 }
-    else {
-        $m = $d % 8
-        if ($m -eq 0) { $mappedVal = 8 } else { $mappedVal = $m }
-    }
-    
-    $info = $BaguaLUT[$mappedVal]
+    # Direct mapping for 0-9
+    $info = $BaguaLUT[$d]
+    if (-not $info) { $info = $BaguaLUT[8] } # Fallback to Earth
     
     $processedSequence += @{
         original = $d
-        mapped   = $mappedVal
+        mapped   = $d
         binary   = $info.bin
         name     = $info.name
         wuxing   = $info.wuxing
@@ -116,7 +99,7 @@ foreach ($d in $digits) {
     $wuxingFlow += $info.wuxing
 }
 
-# D. Analyze Flow (First vs Last)
+# D. Analyze Flow
 $analysis = "Stable"
 if ($wuxingFlow.Count -ge 2) {
     $start = $wuxingFlow[0]
@@ -131,7 +114,7 @@ $result = @{
     agent = "BaguaAgent"
     paradigm = "binary_trigrams"
     timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
-    input_hash = $InputData.GetHashCode()
+    input_hash = if ($InputData) { $InputData.GetHashCode() } else { 0 }
     
     # The Core Binary Output
     BinaryBagua = $binaryStream
@@ -141,17 +124,16 @@ $result = @{
     WuxingFlow = ($wuxingFlow -join " -> ")
     Analysis = $analysis
     
-    # Resource Estimation (Simulated Token Saving)
+    # Resource Estimation
     tokens_saved = [math]::Round($binaryStream.Length * 0.3)
 }
 
-# Convert to JSON for machine consumption
 $json = $result | ConvertTo-Json -Depth 3 -Compress
 
 if ($SelfCheck) {
     Write-Host "Diagnostic Result:" -ForegroundColor Green
     Write-Host $json
-    Write-Host "[BaguaAgent] System is OPTIMAL." -ForegroundColor Cyan
+    Write-Host "[BaguaAgent] System is OPTIMAL. 0=Void, 9=Balance confirmed." -ForegroundColor Cyan
 } else {
     Write-Output $json
 }

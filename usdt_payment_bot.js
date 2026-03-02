@@ -726,20 +726,22 @@ bot.start(async (ctx) => {
   }
 
   await ctx.reply(
-    `🐸 欢迎使用 Qingwa Ghost Mode!\n` +
-    `我们提供:\n` +
-    `✨ AI+易经个人命名报告 ($12)\n` +
-    `🏢 企业品牌命名方案 ($40)\n` +
-    `👥 推荐赚积分系统\n\n` +
-    `快速开始:\n` +
-    `访问: https://f8618.myshopify.com\n` +
-    `选择服务并支付\n` +
-    `填写信息\n` +
-    `3分钟获取报告\n\n` +
-    `或直接支付:\n` +
-    `• PayPal: PayPal.Me/f8618\n` +
-    `• USDT: 发送 /donate 获取地址\n\n` +
-    `需要帮助? 发送 /help`,
+    appendCompliance(
+      `🐸 欢迎使用 Qingwa Ghost Mode!\n` +
+      `我们提供:\n` +
+      `✨ AI+易经个人命名报告 ($12)\n` +
+      `🏢 企业品牌命名方案 ($40)\n` +
+      `👥 推荐赚积分系统\n\n` +
+      `快速开始:\n` +
+      `访问: https://f8618.myshopify.com\n` +
+      `选择服务并支付\n` +
+      `填写信息\n` +
+      `3分钟获取报告\n\n` +
+      `或直接支付:\n` +
+      `• PayPal: PayPal.Me/f8618\n` +
+      `• USDT: 发送 /donate 获取地址\n\n` +
+      `需要帮助? 发送 /help`
+    ),
     { disable_web_page_preview: true }
   );
 });
