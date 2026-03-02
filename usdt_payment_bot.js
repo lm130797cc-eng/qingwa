@@ -175,11 +175,39 @@ process.on('unhandledRejection', (reason) => {
   setTimeout(() => process.exit(1), 1000);
 });
 
-// 2. 健康检查端点（Railway 存活探针）
+// 2. 健康检查端点（Railway 存活探针） + Shopify Webhook
 createServer((req, res) => {
   if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
+  } else if (req.url === '/webhook/shopify' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        // 简单通知逻辑
+        if (CONFIG.channelId) {
+            const orderId = data.order_number || data.id || 'Unknown';
+            const price = data.total_price || '0.00';
+            const currency = data.currency || 'USD';
+            const email = data.email || data.contact_email || 'No Email';
+            
+            const msg = `📦 <b>新订单 #${orderId}</b>\n` +
+                        `💰 金额: ${price} ${currency}\n` +
+                        `📧 客户: ${email}\n` +
+                        `⏰ 时间: ${new Date().toISOString()}`;
+            
+            await bot.telegram.sendMessage(CONFIG.channelId, msg, { parse_mode: 'HTML' }).catch(e => console.error('TG Send Error:', e));
+        }
+        res.writeHead(200);
+        res.end('OK');
+      } catch (e) {
+        console.error('Webhook Error:', e);
+        res.writeHead(400);
+        res.end('Invalid JSON');
+      }
+    });
   } else {
     res.writeHead(404);
     res.end('Not Found');
@@ -698,15 +726,20 @@ bot.start(async (ctx) => {
   }
 
   await ctx.reply(
-    `🐸 Welcome to Qingwa Ghost Mode!\n\n` +
-      `💰 Auto-payment service active\n` +
-      `📋 AI cultural naming reports\n` +
-      `🔐 For entertainment reference only\n\n` +
-      `Commands:\n` +
-      `/start - Start bot\n` +
-      `/help - Show help\n` +
-      `/donate - Get USDT address\n` +
-      `/status - Check order`,
+    `🐸 欢迎使用 Qingwa Ghost Mode!\n` +
+    `我们提供:\n` +
+    `✨ AI+易经个人命名报告 ($12)\n` +
+    `🏢 企业品牌命名方案 ($40)\n` +
+    `👥 推荐赚积分系统\n\n` +
+    `快速开始:\n` +
+    `访问: https://f8618.myshopify.com\n` +
+    `选择服务并支付\n` +
+    `填写信息\n` +
+    `3分钟获取报告\n\n` +
+    `或直接支付:\n` +
+    `• PayPal: PayPal.Me/f8618\n` +
+    `• USDT: 发送 /donate 获取地址\n\n` +
+    `需要帮助? 发送 /help`,
     { disable_web_page_preview: true }
   );
 });
@@ -714,27 +747,61 @@ bot.start(async (ctx) => {
 bot.help((ctx) => {
   ctx.reply(
     `Commands:\n` +
-      `/start - Start bot\n` +
-      `/help - Show help\n` +
-      `/donate - Get USDT address\n` +
-      `/status <txid> - Check order\n\n` +
-      `Tips:\n` +
-      `- Send TXID directly (64 hex chars) to verify\n` +
-      `- Payments are for entertainment reference only`
+      `/start - 启动机器人\n` +
+      `/help - 获取帮助\n` +
+      `/donate - 获取支付地址\n` +
+      `/refer - 获取推荐链接\n` +
+      `/balance - 查询积分余额\n` +
+      `/status <txid> - 查询订单状态\n\n` +
+      `关键词回复:\n` +
+      `"价格", "案例", "推荐"`
   );
 });
 
 bot.command('donate', async (ctx) => {
-  const networkName = CONFIG.chainType === 'TRON' ? 'USDT-TRC20 (Tron)' : 'USDT-ERC20 (Ethereum)';
   await ctx.reply(
-    `💰 Donation / Payment Address\n\n` +
-      `Network: ${networkName}\n` +
-      `Address:\n` +
-      `${CONFIG.walletAddress}\n\n` +
-      `Min: ${CONFIG.minUsdt} USDT\n` +
-      `Rate: 1 USDT ≈ ${CONFIG.exchangeRate} GAS`,
+    `💰 收款地址:\n` +
+    `USDT (TRC20/ERC20): ${CONFIG.walletAddress}\n` +
+    `最低金额: $10 USD\n` +
+    `确认数: ≥20\n` +
+    `支付后请发送交易哈希(TXID)\n` +
+    `我们将自动核验并发送报告\n\n` +
+    `PayPal支付: PayPal.Me/f8618`,
     { disable_web_page_preview: true }
   );
+});
+
+// /refer - 获取推荐链接
+bot.command('refer', async (ctx) => {
+    try {
+        const user = await ensureTelegramUser(ctx.from.id);
+        const link = `https://f8618.myshopify.com/?ref=${user.ref_code}`;
+        await ctx.reply(
+            `👥 您的专属推荐链接:\n` +
+            `${link}\n\n` +
+            `规则:\n` +
+            `1. 邀请好友下单\n` +
+            `2. 获得 30% 佣金/积分\n` +
+            `3. 积分可兑换服务`
+        );
+    } catch (e) {
+        ctx.reply('⚠️ 获取推荐链接失败，请稍后重试');
+    }
+});
+
+// /balance - 查询积分
+bot.command('balance', async (ctx) => {
+    try {
+        const user = await ensureTelegramUser(ctx.from.id);
+        await ctx.reply(
+            `💰 您的账户余额:\n` +
+            `GAS: ${user.gas_balance || 0}\n` +
+            `捐赠状态: ${user.donation_status || 'none'}\n\n` +
+            `发送 /donate 进行充值/捐赠`
+        );
+    } catch (e) {
+        ctx.reply('⚠️ 查询失败');
+    }
 });
 
 // /bind <RefCode> - 手动绑定
@@ -766,6 +833,36 @@ bot.command('status', async (ctx) => {
 bot.on('text', async (ctx) => {
   const text = ctx.message.text.trim();
   
+  // 🏷️ 关键词自动回复
+  if (text.includes('价格') || text.toLowerCase().includes('price')) {
+      return ctx.reply(
+          `💰 产品价格表:\n\n` +
+          `1. AI易经个人命名报告: $12\n` +
+          `2. 企业品牌命名方案: $40\n\n` +
+          `支付方式: PayPal / USDT`
+      );
+  }
+  
+  if (text.includes('案例') || text.toLowerCase().includes('sample')) {
+      return ctx.reply(
+          `📂 成功案例:\n\n` +
+          `1. "智界" (Origin Kai) - 科技公司\n` +
+          `2. "悦纳" (JoyAccept) - 心理咨询\n` +
+          `3. "安岛" (Ant Island) - 数字社区\n\n` +
+          `查看更多: https://f8618.myshopify.com`
+      );
+  }
+  
+  if (text.includes('推荐') || text.toLowerCase().includes('refer')) {
+      try {
+         const user = await ensureTelegramUser(ctx.from.id);
+         const link = `https://f8618.myshopify.com/?ref=${user.ref_code}`;
+         return ctx.reply(`👥 您的专属推荐链接:\n${link}`);
+      } catch (e) {
+         return ctx.reply('⚠️ 获取链接失败');
+      }
+  }
+
   // 识别 64 位十六进制 TXID
   if (/^[a-f0-9]{64}$/i.test(text)) {
     // 限流检查

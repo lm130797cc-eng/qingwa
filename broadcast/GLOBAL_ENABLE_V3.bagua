@@ -1,0 +1,9 @@
+{
+  "type": "BROADCAST",
+  "sender": "BaguaAgent",
+  "target": "NexusCore",
+  "content_human": "八卦中转已全局启用，所有军团切换输入范式",
+  "content_bagua": "101100111",
+  "timestamp": "2026-03-01T12:00:00",
+  "protocol": "binary_trigrams_v3"
+}
