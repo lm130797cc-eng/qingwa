@@ -47,7 +47,8 @@ const CONFIG = {
   donationUsdt: Number(process.env.DONATION_USDT || 12), // $12 购买报告/会员
   donationGasBonus: 30, // 购买报告赠送 30 GAS
   membershipPrice: 12, // 会员价格 $12
-  referralReward: 30, // 推荐奖励 30 GAS
+  referralReward: 90, // 推荐奖励 90 GAS
+  landingUrl: process.env.LANDING_URL || 'https://mayidao-h5.vercel.app',
   
   // 安全
   rateLimit: { window: 3600000, max: 20 },
@@ -339,7 +340,66 @@ async function verifyTransaction(txid, telegramUserId) {
   }
 }
 
+// 创建子用户 (Ghost)
+async function createSubUser(parentRefCode, newRefCode) {
+    const { data: parent } = await supabase.from('users').select('id').eq('ref_code', parentRefCode).single();
+    if (!parent) return;
+
+    // 创建新用户 (Ghost)
+    const { data: newUser, error } = await supabase.from('users').insert({
+        telegram_id: `GHOST_${newRefCode}`, // 占位符，后续可通过 /claim 绑定
+        ref_code: newRefCode,
+        parent_ref_code: parentRefCode,
+        gas_balance: 0,
+        is_member: true,
+        member_activated_at: new Date().toISOString(),
+        created_at: new Date().toISOString()
+    }).select().single();
+
+    if (error) throw error;
+
+    // 记录推荐关系
+    await supabase.from('referrals').insert({
+        referrer_id: parent.id,
+        referred_id: newUser.id,
+        ref_code: parentRefCode
+    });
+
+    return newUser;
+}
+
 // ========== 命令处理 ==========
+
+bot.command('activate', async (ctx) => {
+    try {
+        const user = await ensureTelegramUser(ctx.from.id);
+        
+        // 检查积分 (90 GAS 门槛，实际扣除 88 GAS)
+        // 用户提示说 "检查积分是否>=90"，然后 "扣除88积分"
+        if ((user.gas_balance || 0) >= 90) {
+            const newRefCode = generateRefCode();
+            
+            // 扣除 88 GAS
+            await creditGas(user.id, -88, 'activate_sub_user', `Activate Sub User: ${newRefCode}`);
+            
+            // 创建子用户
+            await createSubUser(user.ref_code, newRefCode);
+            
+          await ctx.reply(
+                `✅ <b>新会员开通成功！</b>\n\n` +
+                `推荐码: <code>${newRefCode}</code>\n` +
+            `推广链接: ${CONFIG.landingUrl}?ref=${newRefCode}\n\n` +
+                `已扣除 88 GAS，剩余: ${(user.gas_balance || 0) - 88}`,
+                { parse_mode: 'HTML', disable_web_page_preview: true }
+            );
+        } else {
+            await ctx.reply(`❌ 积分不足\n当前: ${user.gas_balance || 0} GAS\n需要: 90 GAS`);
+        }
+    } catch (e) {
+        console.error('Activate error:', e);
+        ctx.reply('⚠️ 系统错误');
+    }
+});
 
 bot.start(async (ctx) => {
   const userId = ctx.from.id;
@@ -361,7 +421,7 @@ bot.start(async (ctx) => {
       `   开启推广权限，邀3人回本，无限赚佣金\n\n` +
       `🚀 <b>如何开始?</b>\n` +
       `点击下方链接或发送 /upgrade 升级会员\n` +
-      `👉 https://f8618.myshopify.com`
+      `👉 ${CONFIG.landingUrl}`
     ),
     { parse_mode: 'HTML', disable_web_page_preview: true }
   );
@@ -384,8 +444,8 @@ bot.command('upgrade', async (ctx) => {
         `👑 <b>升级青蛙会员</b>\n` +
         `权益：\n` +
         `✅ 专属推广链接\n` +
-        `✅ 推荐1人返 30 GAS\n` +
-        `✅ 推荐3人回本 (90 GAS)\n\n` +
+        `✅ 推荐1人返 90 GAS\n` +
+        `✅ 88 GAS 可开通子账号\n\n` +
         `支付 <b>$12 USDT</b> 开启权限:\n` +
         `地址 (TRC20):\n<code>${CONFIG.walletAddress}</code>\n\n` +
         `支付后请发送 TXID`,
@@ -405,7 +465,7 @@ bot.command('me', async (ctx) => {
             `👑 身份: ${user.is_member ? '青蛙会员 (Member)' : '普通用户'}\n` +
             `⛽ GAS余额: ${user.gas_balance || 0}\n` +
             `👥 邀请人数: ${count || 0} 人\n\n` +
-            `专属链接: https://f8618.myshopify.com/?ref=${user.ref_code}`,
+            `专属链接: ${CONFIG.landingUrl}?ref=${user.ref_code}`,
             { parse_mode: 'HTML', disable_web_page_preview: true }
         );
     } catch (e) {
@@ -435,7 +495,7 @@ bot.command('team', async (ctx) => {
 bot.command('refer', async (ctx) => {
     try {
         const user = await ensureTelegramUser(ctx.from.id);
-        const link = `http://qingwa.onrender.com/?ref=${user.ref_code}`; // 使用 Render 中转链接
+        const link = `${CONFIG.landingUrl}?ref=${user.ref_code}`;
         await ctx.reply(
             `📢 <b>您的专属推广链接</b>\n` +
             `${link}\n\n` +
@@ -477,21 +537,54 @@ bot.on('text', async (ctx) => {
 
 // ========== HTTP Server (Health & Redirect) ==========
 createServer((req, res) => {
-  // 根路径重定向 (处理 ?ref=xxx)
-  if (req.url === '/' || req.url.startsWith('/?')) {
-      const urlObj = new URL(req.url, `http://${req.headers.host}`);
-      const ref = urlObj.searchParams.get('ref');
-      let target = 'https://f8618.myshopify.com';
-      if (ref) target += `?ref=${ref}`; // 传递给 Shopify
-      
-      res.writeHead(302, { 'Location': target });
-      res.end();
-      return;
+  if (req.url === '/health' || req.url.startsWith('/health?')) {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
+    return;
   }
 
-  if (req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
+  // 根路径：捕获 ref 并写入 localStorage，再跳转到 landingUrl
+  if (req.url === '/' || req.url.startsWith('/?')) {
+    const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    const ref = urlObj.searchParams.get('ref') || '';
+    const landingBase = CONFIG.landingUrl;
+
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    res.end(`<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Qingwa Redirect</title>
+  </head>
+  <body style="font-family:system-ui,Segoe UI,Roboto,sans-serif;padding:24px;">
+    <div style="max-width:520px;margin:0 auto;">
+      <h2 style="margin:0 0 8px;">正在跳转…</h2>
+      <p style="margin:0 0 16px;color:#666;">若 3 秒未跳转，请点击下方按钮。</p>
+      <p><a id="go" href="#" style="display:inline-block;padding:10px 14px;background:#111827;color:#fff;text-decoration:none;border-radius:8px;">继续</a></p>
+    </div>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var ref = params.get('ref');
+        if (ref) {
+          try { localStorage.setItem('ant_ref', ref); } catch (e) {}
+        }
+
+        var landing = '${landingBase}'.replace(/\\/+$/, '');
+        var target = landing;
+        if (ref) {
+          target += (landing.indexOf('?') >= 0 ? '&' : '?') + 'ref=' + encodeURIComponent(ref);
+        }
+
+        var btn = document.getElementById('go');
+        if (btn) btn.href = target;
+        setTimeout(function () { window.location.replace(target); }, 300);
+      })();
+    </script>
+  </body>
+</html>`);
+    return;
   } else {
     res.writeHead(404);
     res.end('Not Found');
