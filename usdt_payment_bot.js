@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { checkFraud } from './03_BACKEND/fraud_detection.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -261,13 +262,35 @@ async function verifyTransaction(txid, telegramUserId) {
     // 2. 判定业务类型
     const intent = userIntents.get(telegramUserId) || 'report'; // 默认为购买报告
     const isMembership = Math.abs(amount - CONFIG.membershipPrice) <= CONFIG.amountTolerance && intent === 'membership';
-    const isReport = Math.abs(amount - CONFIG.donationUsdt) <= CONFIG.amountTolerance; // $12
-
-    // 如果金额匹配会员价且意图不明，优先按报告处理（更安全），除非明确 Upgrade
-    // 但此处价格相同 ($12)，需依赖 intent
     
-    // 3. 执行业务逻辑
+    // 2.5 风控检查
     const user = await ensureTelegramUser(telegramUserId);
+    const fraudCheck = await checkFraud({ userId: user.id, amount }, supabase);
+
+    if (!fraudCheck.approved) {
+        // 记录异常交易
+        await supabase.from('payment_records').insert({
+            txid, user_id: user.id, amount_usdt: amount, status: 'flagged', verified_at: new Date(),
+            notes: `Fraud Alert: ${fraudCheck.reasons.join(', ')}`
+        });
+        
+        // 通知管理员
+        if (CONFIG.channelId) {
+             await bot.telegram.sendMessage(CONFIG.channelId, 
+                `⚠️ <b>风控告警 (Fraud Alert)</b>\n` +
+                `用户: <code>${user.ref_code}</code>\n` +
+                `金额: $${amount}\n` +
+                `原因: ${fraudCheck.reasons.join(', ')}\n` +
+                `TXID: <code>${txid}</code>`, 
+                { parse_mode: 'HTML' }
+            ).catch(e => console.error('Admin notify failed', e));
+        }
+        
+        return { success: false, message: '⚠️ 交易触发风控审核，请联系客服。' };
+    }
+
+    // 3. 执行业务逻辑
+    // const user = await ensureTelegramUser(telegramUserId); // Moved up
     
     if (isMembership) {
         await activateMembership(telegramUserId, txid);

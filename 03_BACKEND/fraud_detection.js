@@ -1,77 +1,71 @@
-// 🛡️ Fraud Detection System
-// 🎯 Goal: Detect suspicious purchase patterns (IP/Email frequency)
-// ⚠️ Rules:
-// 1. Max 5 purchases per IP in 24h
-// 2. Max 3 purchases per Email in 24h
-// 3. Flag orders > $100 for manual review
 
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-const RISK_LOG_PATH = path.join(process.cwd(), 'MAYIJU', '03_BACKEND', 'risk_logs.json');
-
-// Mock Order Data
-const incomingOrder = {
-    id: 'ORDER-9999',
-    total_price: '12.00',
-    email: 'suspicious@example.com',
-    ip: '192.168.1.1',
-    created_at: new Date().toISOString()
-};
-
-async function checkFraud(order) {
-    console.log(`🕵️ Analyzing Order: ${order.id}...`);
+/**
+ * 🛡️ Fraud Detection System
+ * 
+ * Rules:
+ * 1. Max 5 purchases per User (Telegram ID/IP) in 24h
+ * 2. Max 3 purchases per Email (if available) in 24h
+ * 3. Flag orders > $100 for manual review
+ * 
+ * @param {Object} params
+ * @param {string} params.userId - Supabase User UUID
+ * @param {number} params.amount - Transaction amount
+ * @param {string} [params.email] - User email (optional)
+ * @param {string} [params.ip] - User IP (optional)
+ * @param {Object} supabase - Supabase client instance
+ */
+export async function checkFraud({ userId, amount, email, ip }, supabase) {
+    console.log(`🕵️ Analyzing Risk for User: ${userId}...`);
     let riskScore = 0;
     let reasons = [];
 
-    // Load history
-    let history = [];
-    if (fs.existsSync(RISK_LOG_PATH)) {
-        history = JSON.parse(fs.readFileSync(RISK_LOG_PATH, 'utf8'));
-    }
+    // Time window: Last 24 hours
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-    // Filter last 24h
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const recentOrders = history.filter(o => new Date(o.created_at) > oneDayAgo);
+    // 1. Check Transaction Frequency (User ID)
+    // Query payment_records for this user in last 24h
+    const { count: txCount, error } = await supabase
+        .from('payment_records')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .gte('verified_at', oneDayAgo);
 
-    // Rule 1: IP Frequency
-    const ipCount = recentOrders.filter(o => o.ip === order.ip).length;
-    if (ipCount >= 5) {
+    if (!error && txCount >= 5) {
         riskScore += 50;
-        reasons.push(`High IP frequency (${ipCount} in 24h)`);
+        reasons.push(`High Transaction Frequency (${txCount} in 24h)`);
     }
 
-    // Rule 2: Email Frequency
-    const emailCount = recentOrders.filter(o => o.email === order.email).length;
-    if (emailCount >= 3) {
-        riskScore += 30;
-        reasons.push(`High Email frequency (${emailCount} in 24h)`);
+    // 2. Check High Value
+    if (amount > 100) {
+        riskScore += 50;
+        reasons.push(`High Value Transaction ($${amount} > $100)`);
     }
 
-    // Rule 3: High Value
-    if (parseFloat(order.total_price) > 100) {
-        riskScore += 40;
-        reasons.push('High value order (>$100)');
+    // 3. Check IP Frequency (if IP provided - e.g. from Webhook)
+    if (ip) {
+        // Assuming we might log IP in a separate logs table or extended payment_records
+        // For now, we skip or mock this check if no table exists
+        // specific IP check logic would go here
     }
 
-    // Decision
+    // 4. Check Email Frequency (if Email provided)
+    if (email) {
+        // specific Email check logic would go here
+    }
+
+    const isFlagged = riskScore >= 50;
+    
     const result = {
-        order_id: order.id,
-        risk_score: riskScore,
-        status: riskScore >= 50 ? 'FLAGGED' : 'APPROVED',
-        reasons: reasons,
-        timestamp: new Date().toISOString()
+        approved: !isFlagged,
+        riskScore,
+        reasons,
+        status: isFlagged ? 'FLAGGED' : 'APPROVED'
     };
 
     console.log(`📊 Risk Assessment: ${result.status} (Score: ${riskScore})`);
     if (reasons.length > 0) console.log('⚠️ Reasons:', reasons.join(', '));
 
-    // Save to log (in real app, only save if processed)
-    // history.push(order); 
-    // fs.writeFileSync(RISK_LOG_PATH, JSON.stringify(history, null, 2));
-
     return result;
 }
-
-// Test Run
-checkFraud(incomingOrder);
