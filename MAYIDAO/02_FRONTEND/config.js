@@ -59,7 +59,7 @@ window.MAYIDAO_CONFIG = {
   settings: {
     debug: false,
     reportExpireHours: 24,
-    maxRefDepth: 2 // 推荐链最多 2 级（防传销风险）
+    maxRefDepth: 3 // 推荐链最多 3 级
   },
   
   version: '2.0',

@@ -211,15 +211,87 @@ async function activateMembership(userId, txid) {
         
     if (!user) return;
 
-    // 2. 查找推荐人并奖励
-    if (user.parent_ref_code) {
-        const { data: referrer } = await supabase.from('users').select('id').eq('ref_code', user.parent_ref_code).single();
-        if (referrer) {
-            // 奖励推荐人 30 GAS
-            await creditGas(referrer.id, CONFIG.referralReward, 'referral_reward', `Invite Member: ${maskRefCode(user.ref_code)}`);
-            // 通知推荐人 (如果有 chat_id)
-            // await bot.telegram.sendMessage(...)
+    // 2. 推荐奖励已移至 processOrderWithReferral 统一处理 (支持3级分销)
+}
+
+// ========== 推荐奖励逻辑 ==========
+
+// 获取用户 (by RefCode)
+async function getUserByRefCode(refCode) {
+    const { data, error } = await supabase.from('users').select('*').eq('ref_code', refCode).single();
+    return data;
+}
+
+// 验证奖励资格 (防刷)
+async function validateReferralReward(orderId, userId, amount) {
+    // 1. 同一订单不可重复奖励
+    const { count } = await supabase
+        .from('gas_transactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('description', `Referral Reward L1 from order ${orderId}`); // 简单查重
+
+    if (count > 0) return false;
+
+    // 2. 最低订单金额限制 (默认 $10)
+    // const { data: config } = await supabase.from('referral_config').select('min_order_amount').limit(1).single();
+    // const minAmount = config?.min_order_amount || 10;
+    const minAmount = 10; // 硬编码兜底，减少数据库查询
+    if (amount < minAmount) return false;
+
+    // 3. 同一用户24小时内最多奖励5次
+    const { count: recentCount } = await supabase
+        .from('gas_transactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('transaction_type', 'referral_reward')
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+    return (recentCount || 0) < 5;
+}
+
+// === 3 层推荐奖励分发 ===
+async function distributeReferralRewards(orderId, userId, orderAmount) {
+    // 防刷校验 (保留原有逻辑)
+    if (!await validateReferralReward(orderId, userId, orderAmount)) {
+        console.log(`⚠️ Referral reward skipped for order ${orderId} (Validation failed)`);
+        return null;
+    }
+
+    try {
+        const { data: rewards, error } = await supabase.rpc('distribute_referral_rewards', {
+            p_order_id: orderId,
+            p_user_id: userId,
+            p_order_amount: orderAmount
+        });
+        
+        if (error) {
+            console.error('❌ Reward distribution failed:', error);
+            return null;
         }
+        
+        // 发送 Telegram 通知给各层级推荐人
+        if (rewards && rewards.length > 0) {
+            for (const reward of rewards) {
+                const refUser = await getUserByRefCode(reward.recipient_ref_code);
+                if (refUser?.telegram_id) {
+                    await bot.telegram.sendMessage(
+                        refUser.telegram_id,
+                        `🎉 推荐奖励到账！\n\n` +
+                        `📊 层级：L${reward.level}\n` +
+                        `💰 金额：${reward.reward_amount} GAS\n` +
+                        `📦 订单：${orderId}\n\n` +
+                        `继续推广赚取更多积分！\n` +
+                        `发送 /refer 获取您的专属链接`
+                    ).catch(e => console.error(`Failed to notify user ${refUser.telegram_id}`, e));
+                }
+            }
+            console.log('✅ Rewards distributed:', rewards);
+        }
+        
+        return rewards;
+    } catch (err) {
+        console.error('❌ Reward distribution error:', err);
+        return null;
     }
 }
 
@@ -304,10 +376,28 @@ async function verifyTransaction(txid, telegramUserId) {
             status: 'approved',
             approved_at: new Date()
         });
+        // 会员依然触发推荐奖励
+        await distributeReferralRewards(txid, user.id, amount);
     } else {
-        // 默认作为购买报告/捐赠处理
+        // 支付成功 → 创建订单 → 触发奖励分发
+        const orderId = crypto.randomUUID();
+        
+        // 创建订单记录
+        await supabase.from('orders').insert({
+            id: orderId,
+            user_id: user.id,
+            service_type: 'AI Naming Report',
+            service_price: amount,
+            payment_method: 'USDT',
+            payment_status: 'paid',
+            report_status: 'pending'
+        });
+
         const gasAmount = CONFIG.donationGasBonus; // +30 GAS
         await creditGas(user.id, gasAmount, 'purchase_reward', `Buy Report (${txid.slice(0,6)})`);
+        
+        // 🐸 触发 3 层推荐奖励
+        await distributeReferralRewards(orderId, user.id, amount);
         
         // 触发报告生成
         if (CONFIG.reportWebhook) {
@@ -317,6 +407,16 @@ async function verifyTransaction(txid, telegramUserId) {
                 body: JSON.stringify({ event: 'payment_confirmed', user_id: user.id, order_id: `TX-${txid.slice(0,8)}` })
             }).catch(e => console.error('Webhook fail', e));
         }
+
+        // 发送成功通知给用户
+        await bot.telegram.sendMessage(
+            user.telegram_id,
+            `✅ 支付成功！\n\n` +
+            `订单：${orderId}\n` +
+            `金额：$${amount}\n` +
+            `报告生成中...\n\n` +
+            `如有推荐人，他们已获得 GAS 奖励！`
+        );
     }
 
     // 4. 记录交易
@@ -414,14 +514,16 @@ bot.start(async (ctx) => {
   await ctx.reply(
     appendCompliance(
       `🐸 欢迎使用 Qingwa Ghost Mode!\n\n` +
-      `🔥 <b>热门服务:</b>\n` +
-      `1️⃣ <b>AI易经取名报告</b> ($12)\n` +
-      `   赠送 30 GAS，含中英文解读\n` +
-      `2️⃣ <b>青蛙会员 (Agent)</b> ($12)\n` +
-      `   开启推广权限，邀3人回本，无限赚佣金\n\n` +
-      `🚀 <b>如何开始?</b>\n` +
-      `点击下方链接或发送 /upgrade 升级会员\n` +
-      `👉 ${CONFIG.landingUrl}`
+      `✨ 我们的服务:\n` +
+      `• AI 个人命名报告 $12\n` +
+      `• AI 企业命名方案 $40\n` +
+      `• 青蛙机器人会员 $12\n\n` +
+      `🎁 推荐奖励计划:\n` +
+      `• 推广 1 个 → 30% GAS\n` +
+      `• 推广 2 个 → 5% GAS\n` +
+      `• 推广 3 个 → 3% GAS\n` +
+      `• 推广 3 个即可回本!\n\n` +
+      `发送 /refer 获取您的专属链接`
     ),
     { parse_mode: 'HTML', disable_web_page_preview: true }
   );

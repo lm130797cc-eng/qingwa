@@ -80,6 +80,97 @@
       })();
     </script>
 
+    <!-- Referral Rewards Section -->
+    <section id="referral-dashboard" class="container" style="margin-top:20px;">
+      <div class="card" style="border:1px solid #eee;">
+        <h3 style="text-align:center; color:#8b0000; margin-top:0;">🎁 我的推荐奖励</h3>
+        <div style="text-align:center; margin-bottom:15px;">
+          <input type="text" id="myRefCodeInput" placeholder="输入您的推荐码 (如 ANT...)" style="padding:8px; width:180px; border:1px solid #ddd; border-radius:4px;">
+          <button onclick="checkMyRewards()" class="btn" style="width:auto; display:inline-block; padding:8px 16px; margin-top:5px; background:#d4af37;">查询</button>
+        </div>
+        <div id="rewards-loading" style="display:none; text-align:center; color:#666; margin-bottom:10px;">加载中...</div>
+        <div class="table-responsive">
+          <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+            <thead>
+              <tr style="background:#f9f9f9; border-bottom:2px solid #eee;">
+                <th style="padding:8px; text-align:left;">层级</th>
+                <th style="padding:8px; text-align:left;">来源</th>
+                <th style="padding:8px; text-align:right;">奖励</th>
+                <th style="padding:8px; text-align:right;">时间</th>
+              </tr>
+            </thead>
+            <tbody id="rewards-list">
+              <tr><td colspan="4" style="text-align:center; padding:15px; color:#999;">请输入推荐码查询</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <script>
+    async function checkMyRewards() {
+      const refCode = document.getElementById('myRefCodeInput').value.trim();
+      if (!refCode) return alert('请输入推荐码');
+      
+      const supabase = window.initSupabase();
+      if (!supabase) return alert('系统连接失败');
+
+      document.getElementById('rewards-loading').style.display = 'block';
+      document.getElementById('rewards-list').innerHTML = '';
+      
+      try {
+        // 1. Get User ID from Ref Code
+        const { data: user, error: uErr } = await supabase
+          .from('users')
+          .select('id')
+          .eq('ref_code', refCode)
+          .single();
+          
+        if (uErr || !user) {
+          document.getElementById('rewards-loading').style.display = 'none';
+          document.getElementById('rewards-list').innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:red;">未找到该推荐码</td></tr>';
+          return;
+        }
+        
+        // 2. Load Rewards
+        await loadReferralRewards(user.id, supabase);
+      } catch (e) {
+        console.error(e);
+        alert('查询失败');
+      } finally {
+        document.getElementById('rewards-loading').style.display = 'none';
+      }
+    }
+
+    async function loadReferralRewards(userId, supabase) {
+      const { data, error } = await supabase
+        .from('gas_transactions')
+        .select('referral_level, description, amount, created_at')
+        .eq('user_id', userId)
+        .eq('transaction_type', 'referral_reward')
+        .order('created_at', { ascending: false });
+
+      const tbody = document.getElementById('rewards-list');
+      
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">暂无奖励记录</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(r => `
+        <tr style="border-bottom:1px solid #eee;">
+          <td style="padding:8px;">L${r.referral_level || 1}</td>
+          <td style="padding:8px;">${r.description?.match(/order (\w+)/)?.[1]?.slice(0,6) || 'Order'}...</td>
+          <td style="padding:8px; text-align:right; color:#d4af37; font-weight:bold;">+${r.amount}</td>
+          <td style="padding:8px; text-align:right; color:#666; font-size:0.8rem;">${new Date(r.created_at).toLocaleDateString()}</td>
+        </tr>
+      `).join('');
+    }
+    
+    // Auto-check if ref code is stored locally and it matches the user's intent? 
+    // Usually local storage 'ant_ref' is the *referrer*, so we don't auto-fill it as *my* code.
+    </script>
+
     <script src="/assets/app.js"></script>
   </body>
 </html>

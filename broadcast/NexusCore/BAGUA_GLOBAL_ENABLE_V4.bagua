@@ -1,0 +1,8 @@
+TIMESTAMP: 2026-03-03 20:18:00
+SENDER: BaguaAgent
+TARGET: NexusCore
+TYPE: SYSTEM_BROADCAST
+CONTENT_BINARY: 111000101110000111
+CONTENT_TEXT: 八卦中转已全局启用，所有军团切换输入范式 (Global Bagua Transit Enabled)
+PARADIGM: binary_trigrams
+STATUS: ACTIVE
