@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>🐜 蚂蚁岛 | AI文化命名</title>
+    <meta name="description" content="蚂蚁岛 - AI+传统文化命名咨询，支持推广返佣与积分内循环。" />
+
+    <link rel="stylesheet" href="/assets/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/config.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🐜 蚂蚁岛</h1>
+        <div style="margin-top:8px;font-size:0.95rem;opacity:0.95;">
+          AI + 传统文化 · 手机秒开 · 全球 CDN
+        </div>
+      </header>
+
+      <main>
+        <div class="card text-center">
+          <h2 style="margin:0 0 8px;">🎁 领取新人福利</h2>
+          <p style="margin:0 0 8px;">访问即自动绑定推荐码并保存到本机。</p>
+          <div style="font-size:0.9rem;color:#666;">
+            当前推荐码：<span id="refCodeText" class="gold-text">--</span>
+          </div>
+        </div>
+
+        <div class="card text-center">
+          <h2 style="margin:0 0 8px;">✨ 个人命名文化咨询</h2>
+          <p style="margin:0;">融合音韵、美学与五行结构，生成多方案可选报告。</p>
+          <a class="btn" id="startPersonal" href="#">立即体验</a>
+        </div>
+
+        <div class="card text-center">
+          <h2 style="margin:0 0 8px;">🏢 企业命名文化咨询</h2>
+          <p style="margin:0;">结合行业属性与传播力，输出品牌级命名建议。</p>
+          <a class="btn btn-secondary" id="startEnterprise" href="#">立即体验</a>
+        </div>
+
+        <div class="card text-center" style="border:1px dashed #ddd;">
+          <h3 style="margin:0 0 8px;">🤖 Telegram 自动核验</h3>
+          <p style="margin:0 0 10px;color:#666;">支付后发 TXID，自动到账并发放权益。</p>
+          <a class="btn btn-secondary" id="openBot" href="#" target="_blank" rel="noopener noreferrer">打开机器人</a>
+        </div>
+      </main>
+
+      <footer>
+        <div>⚠️ 仅供文化娱乐与美学参考，不涉及命运预测</div>
+        <div style="margin-top:6px;">© MAYIDAO</div>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var ref = params.get('ref');
+        if (ref && ref.length > 0) {
+          try { localStorage.setItem('ant_ref', ref); } catch (e) {}
+        } else {
+          try { ref = localStorage.getItem('ant_ref') || ''; } catch (e) { ref = ''; }
+        }
+
+        var refText = document.getElementById('refCodeText');
+        if (refText) refText.textContent = ref || 'DIRECT';
+
+        var botUser = (window.MAYIDAO_CONFIG && window.MAYIDAO_CONFIG.telegram && window.MAYIDAO_CONFIG.telegram.botUsername) ? window.MAYIDAO_CONFIG.telegram.botUsername : '';
+        var openBot = document.getElementById('openBot');
+        if (openBot) {
+          openBot.href = botUser ? ('https://t.me/' + botUser + (ref ? ('?start=' + encodeURIComponent(ref)) : '')) : 'https://t.me/';
+        }
+
+        var toPersonal = document.getElementById('startPersonal');
+        if (toPersonal) toPersonal.href = '/' + (ref ? ('?ref=' + encodeURIComponent(ref)) : '') + '#service';
+
+        var toEnterprise = document.getElementById('startEnterprise');
+        if (toEnterprise) toEnterprise.href = '/' + (ref ? ('?ref=' + encodeURIComponent(ref)) : '') + '#service';
+      })();
+    </script>
+
+    <script src="/assets/app.js"></script>
+  </body>
+</html>
