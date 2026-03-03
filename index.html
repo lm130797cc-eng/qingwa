@@ -149,6 +149,43 @@
    </style> 
  </head> 
  <body> 
+ <div id="wake-up-notice" style="display:none; position:fixed; top:0; left:0; right:0; background:#d4af37; color:#000; padding:12px; text-align:center; z-index:9999; font-weight:600;">
+   🐸 服务唤醒中，请稍候 (约30秒)... <span id="countdown">30</span>s
+ </div>
+ <script>
+ (function() {
+   if (!location.hostname.includes('onrender.com')) return;
+   var notice = document.getElementById('wake-up-notice');
+   var countdownEl = document.getElementById('countdown');
+   if (!notice || !countdownEl) return;
+   notice.style.display = 'block';
+   var seconds = 30;
+   countdownEl.textContent = String(seconds);
+   var timer = setInterval(function() {
+     seconds--;
+     countdownEl.textContent = String(seconds);
+     if (seconds <= 0) {
+       clearInterval(timer);
+       location.reload();
+     }
+   }, 1000);
+ 
+   try {
+     var controller = new AbortController();
+     var timeout = setTimeout(function() { controller.abort(); }, 8000);
+     fetch('/health?ts=' + Date.now(), { cache: 'no-store', signal: controller.signal })
+       .then(function(r) { return r.ok ? r.text() : ''; })
+       .then(function(t) {
+         if (String(t).toLowerCase().includes('ok')) {
+           clearInterval(timer);
+           notice.style.display = 'none';
+         }
+       })
+       .catch(function() {})
+       .finally(function() { clearTimeout(timeout); });
+   } catch (e) {}
+ })();
+ </script>
  <div class="container"> 
    <!-- 头部 --> 
    <div class="header"> 
@@ -253,7 +290,7 @@
      
     <div style="display:flex;gap:8px;"> 
       <input type="text" id="shareLink" readonly  
-             value="https://mayidao-h5.vercel.app/?ref=ANTXXXXXX" 
+             value="https://qingwa.onrender.com/?ref=ANTXXXXXX" 
              style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:12px;"> 
       <button onclick="copyLink()" style="padding:8px 16px;background:#8b0000;color:#fff;border:none;border-radius:4px;cursor:pointer;"> 
         复制 
@@ -645,7 +682,7 @@ function copyLink() {
   }
    
   // 更新分享链接显示
-  const shareUrl = `https://mayidao-h5.vercel.app/?ref=${refCode}`;
+  const shareUrl = `https://qingwa.onrender.com/?ref=${refCode}`;
   const shareInput = document.getElementById('shareLink');
   if (shareInput) shareInput.value = shareUrl;
   
@@ -730,7 +767,7 @@ if (localStorage.getItem('admin_token') === 'mayidao_admin_2024') {
   }
 }
 </script>
-  const shareUrl = window.location.origin + '/?ref=' + refCode;
+  const shareUrl = 'https://qingwa.onrender.com/?ref=' + refCode;
   const shareInput = document.getElementById('shareLink');
   if (shareInput) {
       shareInput.value = shareUrl;
