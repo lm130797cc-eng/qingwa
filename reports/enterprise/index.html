@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Index of Enterprise Reports</title>
+<style>body{font-family:sans-serif;padding:20px;} li{margin:5px 0;} a{text-decoration:none;color:#007bff;} a:hover{text-decoration:underline;}</style>
+</head>
+<body>
+  <h1>Enterprise Reports List</h1>
+  <ul id="list"></ul>
+  <script>
+    const files = ['report_星河造型_20260310_1518.html','report_星辰咖啡_20260301_0818.html','report_晨光小面_20260308_0908.html','report_智源学堂_20260315_0908.html'];
+    const list = document.getElementById('list');
+    files.forEach(f => {
+      const li = document.createElement('li');
+      li.innerHTML = \<a href="\" target="_blank">\</a>\;
+      list.appendChild(li);
+    });
+  </script>
+</body>
+</html>

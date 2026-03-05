@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Index of Personal Reports</title>
+<style>body{font-family:sans-serif;padding:20px;} li{margin:5px 0;} a{text-decoration:none;color:#007bff;} a:hover{text-decoration:underline;}</style>
+</head>
+<body>
+  <h1>Personal Reports List</h1>
+  <ul id="list"></ul>
+  <script>
+    const files = ['report_刘海翔_0000.html','report_子涵.html','report_宇轩_1400.html','report_小明_0630.html','report_晨曦_0630.html','report_测试宝_0630.html','report_若涵_2215.html'];
+    const list = document.getElementById('list');
+    files.forEach(f => {
+      const li = document.createElement('li');
+      li.innerHTML = \<a href="\" target="_blank">\</a>\;
+      list.appendChild(li);
+    });
+  </script>
+</body>
+</html>

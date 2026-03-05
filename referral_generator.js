@@ -9,7 +9,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const SHOPIFY_DOMAIN = 'https://f8618.myshopify.com';
+const REFERRAL_BASE_URL = process.env.REFERRAL_BASE_URL || 'https://qingwa.onrender.com';
 
 /**
  * Generate a unique referral code for a user
@@ -25,7 +25,7 @@ export async function generateReferralLink(userId) {
     .single();
 
   if (existingUser?.ref_code) {
-    return `${SHOPIFY_DOMAIN}/?ref=${existingUser.ref_code}`;
+    return `${REFERRAL_BASE_URL}/?ref=${existingUser.ref_code}`;
   }
 
   // 2. Generate new code: REF_XXXXXXXX
@@ -47,7 +47,7 @@ export async function generateReferralLink(userId) {
     throw new Error('Failed to generate referral link');
   }
 
-  return `${SHOPIFY_DOMAIN}/?ref=${refCode}`;
+  return `${REFERRAL_BASE_URL}/?ref=${refCode}`;
 }
 
 // Example usage if run directly

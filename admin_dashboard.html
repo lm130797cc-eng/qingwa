@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>🐸 青蛙机器人·会员管理后台</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { color: #d4af37; border-bottom: 3px solid #d4af37; padding-bottom: 10px; }
+    .section { margin: 30px 0; padding: 20px; background: #fafafa; border-radius: 8px; }
+    .form-group { margin: 15px 0; }
+    label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    button { background: #d4af37; color: #000; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-weight: 600; margin: 5px; }
+    button:hover { background: #b8941f; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0; }
+    .stat-card { background: #fff; padding: 20px; border-radius: 8px; text-align: center; border-left: 4px solid #d4af37; }
+    .stat-value { font-size: 32px; font-weight: bold; color: #d4af37; }
+    .stat-label { color: #666; margin-top: 5px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background: #d4af37; color: #000; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; border: none; }
+    .badge-success { background: #22c55e; color: #fff; }
+    .badge-warning { background: #f59e0b; color: #000; }
+    .badge-pending { background: #6b7280; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐸 青蛙机器人·会员管理后台</h1>
+    
+    <!-- 统计面板 -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="totalMembers">0</div>
+        <div class="stat-label">总会员数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalRevenue">¥0</div>
+        <div class="stat-label">总收入</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="pendingApps">0</div>
+        <div class="stat-label">待审核申请</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalGas">0</div>
+        <div class="stat-label">流通积分</div>
+      </div>
+    </div>
+
+    <!-- 开通新会员 -->
+    <div class="section">
+      <h2>🔓 开通新会员</h2>
+      <div class="form-group">
+        <label>用户手机号：</label>
+        <input type="text" id="phone" placeholder="例如：18080860669">
+      </div>
+      <div class="form-group">
+        <label>支付方式：</label>
+        <select id="paymentMethod">
+          <option value="cash">现金</option>
+          <option value="wechat_transfer">微信转账</option>
+          <option value="paypal">PayPal</option>
+          <option value="usdt">USDT</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>支付金额：</label>
+        <input type="number" id="amount" placeholder="88" value="88">
+      </div>
+      <div class="form-group">
+        <label>支付凭证（备注/截图URL）：</label>
+        <input type="text" id="paymentProof" placeholder="例如：微信转账截图">
+      </div>
+      <div class="form-group">
+        <label>上级推荐码（可选）：</label>
+        <input type="text" id="parentRefCode" placeholder="例如：139user1234">
+      </div>
+      <button onclick="activateMember()">✅ 开通会员</button>
+    </div>
+
+    <!-- 待审核申请 -->
+    <div class="section">
+      <h2>⏳ 待审核申请</h2>
+      <table id="applicationsTable">
+        <thead>
+          <tr>
+            <th>手机号/用户</th>
+            <th>支付金额</th>
+            <th>支付方式</th>
+            <th>支付凭证</th>
+            <th>申请时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- 会员列表 -->
+    <div class="section">
+      <h2>👥 会员列表</h2>
+      <table id="membersTable">
+        <thead>
+          <tr>
+            <th>用户标识</th>
+            <th>推荐码</th>
+            <th>推广链接</th>
+            <th>积分余额</th>
+            <th>下级人数</th>
+            <th>激活时间</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Supabase配置
+    const supabaseUrl = 'https://unjpgieetbrtelcafykl.supabase.co';
+    const supabaseKey = 'sb_publishable_o6SafjUzgegDHy2z_0-HKg_gtoFOQEh';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // 页面加载时刷新数据
+    window.onload = function() {
+      loadStats();
+      loadApplications();
+      loadMembers();
+      setInterval(loadStats, 30000); // 每30秒刷新
+    };
+
+    // 生成随机RefCode
+    function generateRefCode() {
+        return 'ANT' + Math.random().toString(36).slice(2, 10).toUpperCase();
+    }
+
+    // 加载统计数据
+    async function loadStats() {
+      const { count: memberCount } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('is_member', true);
+      const { data: revenue } = await supabase.from('membership_applications').select('amount_paid').eq('status', 'approved');
+      const { count: pendingCount } = await supabase.from('membership_applications').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+      const { data: gasData } = await supabase.from('users').select('gas_balance');
+      
+      const totalGas = gasData?.reduce((sum, u) => sum + (u.gas_balance || 0), 0) || 0;
+      const totalRevenue = revenue?.reduce((sum, r) => sum + parseFloat(r.amount_paid || 0), 0) || 0;
+
+      document.getElementById('totalMembers').textContent = memberCount || 0;
+      document.getElementById('totalRevenue').textContent = '¥' + totalRevenue.toFixed(2);
+      document.getElementById('pendingApps').textContent = pendingCount || 0;
+      document.getElementById('totalGas').textContent = totalGas;
+    }
+
+    // 开通新会员 (手动/自动)
+    async function activateMember() {
+        const phone = document.getElementById('phone').value;
+        const paymentMethod = document.getElementById('paymentMethod').value;
+        const amount = parseFloat(document.getElementById('amount').value);
+        const paymentProof = document.getElementById('paymentProof').value;
+        const parentRefCode = document.getElementById('parentRefCode').value;
+
+        if (!phone) { alert('请输入手机号'); return; }
+
+        try {
+            // 1. 查找或创建用户
+            let { data: user } = await supabase.from('users').select('*').eq('phone', phone).single();
+            
+            if (!user) {
+                 // 尝试用 ref_code 查找
+                 let { data: userByRef } = await supabase.from('users').select('*').eq('ref_code', phone).single();
+                 if (userByRef) {
+                     user = userByRef;
+                 } else {
+                     // 创建新用户
+                     const { data: newUser, error } = await supabase.from('users').insert({
+                         phone: phone,
+                         ref_code: generateRefCode(),
+                         gas_balance: 0,
+                         parent_ref_code: parentRefCode || null
+                     }).select().single();
+                     
+                     if (error) throw error;
+                     user = newUser;
+                 }
+            }
+            
+            const refCode = user.ref_code;
+
+            // 2. 激活会员状态
+            await supabase.from('users').update({
+                is_member: true,
+                member_activated_at: new Date()
+            }).eq('id', user.id);
+
+            // 3. 处理推荐奖励 (90 GAS)
+            if (parentRefCode) {
+                // 确保用户记录了上级
+                if (!user.parent_ref_code || user.parent_ref_code !== parentRefCode) {
+                    await supabase.from('users').update({ parent_ref_code: parentRefCode }).eq('id', user.id);
+                }
+
+                const { data: parent } = await supabase.from('users').select('id, gas_balance').eq('ref_code', parentRefCode).single();
+                if (parent) {
+                    const newBalance = (parent.gas_balance || 0) + 90;
+                    await supabase.from('users').update({ gas_balance: newBalance }).eq('id', parent.id);
+                    
+                    // 记录推荐关系
+                    await supabase.from('referrals').upsert({
+                        referrer_id: parent.id,
+                        referred_id: user.id,
+                        ref_code: parentRefCode,
+                        gas_reward: 90
+                    }, { onConflict: 'referred_id' });
+
+                    // 记录积分流水
+                    await supabase.from('gas_transactions').insert({
+                        user_id: parent.id,
+                        amount: 90,
+                        balance_after: newBalance,
+                        transaction_type: 'referral_reward',
+                        description: `推荐新用户 ${refCode} 获得90 GAS`
+                    });
+                }
+            }
+
+            alert(`✅ 会员开通成功！\n手机号：${phone}\n推荐码：${refCode}\n推广链接： https://qingwa.onrender.com/?ref=${refCode} `);
+            
+            // 清空表单
+            document.getElementById('phone').value = '';
+            document.getElementById('paymentProof').value = '';
+            document.getElementById('parentRefCode').value = '';
+            
+            // 刷新数据
+            loadStats();
+            loadMembers();
+
+        } catch (e) {
+            console.error(e);
+            alert('❌ 开通失败: ' + e.message);
+        }
+    }
+
+    // 加载待审核申请
+    async function loadApplications() {
+        const { data } = await supabase.from('membership_applications').select('*').eq('status', 'pending').order('created_at', { ascending: false });
+        const tbody = document.querySelector('#applicationsTable tbody');
+        tbody.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">暂无待审核申请</td></tr>';
+            return;
+        }
+
+        data.forEach(app => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${app.phone || 'Unknown'}</td>
+                <td>¥${app.amount_paid}</td>
+                <td>${app.payment_method}</td>
+                <td>${app.payment_proof}</td>
+                <td>${new Date(app.created_at).toLocaleString()}</td>
+                <td>
+                    <button onclick="approveApplication('${app.id}', '${app.phone}')" class="badge badge-success">✅ 通过</button>
+                    <button onclick="rejectApplication('${app.id}')" class="badge badge-warning">❌ 拒绝</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 审核通过
+    async function approveApplication(appId, phone) {
+        try {
+            const { data: app } = await supabase.from('membership_applications').select('*').eq('id', appId).single();
+            
+            if (!app) {
+                alert('申请记录不存在');
+                return;
+            }
+
+            // 调用开通会员函数 (通过填充表单)
+            document.getElementById('phone').value = app.phone;
+            document.getElementById('paymentMethod').value = app.payment_method;
+            document.getElementById('amount').value = app.amount_paid;
+            document.getElementById('paymentProof').value = app.payment_proof;
+            // 尝试从备注或proof中提取parentRefCode? 暂时忽略，或者管理员手动填
+            
+            await activateMember();
+            
+            // 更新申请状态
+            await supabase.from('membership_applications').update({
+                status: 'approved',
+                approved_at: new Date().toISOString()
+            }).eq('id', appId);
+            
+            loadApplications();
+        } catch (e) {
+            alert('❌ 审核失败: ' + e.message);
+        }
+    }
+
+    // 拒绝申请
+    async function rejectApplication(appId) {
+        if (!confirm('确认拒绝该申请？')) return;
+        await supabase.from('membership_applications').update({ status: 'rejected' }).eq('id', appId);
+        loadApplications();
+        loadStats();
+    }
+
+    // 加载会员列表
+    async function loadMembers() {
+        const { data } = await supabase.from('users').select('*').eq('is_member', true).order('member_activated_at', { ascending: false });
+        const tbody = document.querySelector('#membersTable tbody');
+        tbody.innerHTML = '';
+
+        if (!data || data.length === 0) {
+             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">暂无会员</td></tr>';
+             return;
+        }
+
+        data.forEach(member => {
+            const refLink = `https://qingwa.onrender.com/?ref=${member.ref_code}`;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${member.phone || member.telegram_id || 'Unknown'}</td>
+                <td>${member.ref_code}</td>
+                <td><a href="${refLink}" target="_blank">链接</a></td>
+                <td>${member.gas_balance || 0}</td>
+                <td>${member.total_referrals || 0}</td>
+                <td>${member.member_activated_at ? new Date(member.member_activated_at).toLocaleDateString() : '-'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+  </script>
+</body>
+</html>

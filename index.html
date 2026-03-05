@@ -1,819 +1,192 @@
-<!DOCTYPE html> 
- <html lang="zh-CN"> 
- <head> 
-   <meta charset="UTF-8"> 
-   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
-   <meta name="description" content="蚂蚁岛 - AI+易经文化命名咨询"> 
-   <title>🐜 蚂蚁岛 | AI文化命名</title> 
-    
-   <!-- Supabase SDK --> 
-   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
-    
-   <!-- 配置文件 --> 
-  <script src="config.js"></script>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>🐜 蚂蚁岛 | AI文化命名</title>
+    <meta name="description" content="蚂蚁岛 - AI+传统文化命名咨询，支持推广返佣与积分内循环。" />
 
-  <script>
-    window.checkIslandAccess = function() {
-      const islandMember = localStorage.getItem('island_member');
-      const donationStatus = localStorage.getItem('donation_status');
+    <link rel="stylesheet" href="/assets/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/config.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1 style="color:#2e7d32;">🐸 福娃 · 青蛙机器人</h1>
+        <div style="margin-top:8px;font-size:0.95rem;opacity:0.95;">
+          AI + 易经文化 · 三生万物 · 共生共荣
+        </div>
+      </header>
 
-      if (islandMember !== 'true' || donationStatus !== 'completed') {
-        if (!window.location.href.includes('donate.html')) {
-          const redirect = window.location.pathname + window.location.search;
-          window.location.href = 'donate.html?redirect=' + encodeURIComponent(redirect);
+      <main>
+        <div class="card text-center">
+          <h2 style="margin:0 0 8px;">🎁 领取新人福利</h2>
+          <p style="margin:0 0 8px;">访问即自动绑定推荐码并保存到本机。</p>
+          <div style="font-size:0.9rem;color:#666;">
+            当前推荐码：<span id="refCodeText" class="gold-text">--</span>
+          </div>
+        </div>
+
+        <div class="card text-center">
+          <h2 style="margin:0 0 8px;">✨ 个人命名文化咨询</h2>
+          <p style="margin:0;">融合音韵、美学与五行结构，生成多方案可选报告。</p>
+          <a class="btn" id="startPersonal" href="#">立即体验</a>
+        </div>
+
+        <div class="card text-center">
+          <h2 style="margin:0 0 8px;">🏢 企业命名文化咨询</h2>
+          <p style="margin:0;">结合行业属性与传播力，输出品牌级命名建议。</p>
+          <a class="btn btn-secondary" id="startEnterprise" href="#">立即体验</a>
+        </div>
+
+        <div class="card text-center" style="border:1px dashed #ddd;">
+          <h3 style="margin:0 0 8px;">🤖 Telegram 自动核验</h3>
+          <p style="margin:0 0 10px;color:#666;">支付后发 TXID，自动到账并发放权益。</p>
+          <a class="btn btn-secondary" id="openBot" href="#" target="_blank" rel="noopener noreferrer">打开机器人</a>
+        </div>
+      </main>
+
+      <footer>
+        <div>⚠️ 仅供文化娱乐与美学参考，不涉及命运预测</div>
+        <div style="margin-top:6px;">© MAYIDAO</div>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var ref = params.get('ref');
+        if (ref && ref.length > 0) {
+          try { localStorage.setItem('ant_ref', ref); } catch (e) {}
+        } else {
+          try { ref = localStorage.getItem('ant_ref') || ''; } catch (e) { ref = ''; }
         }
-        return false;
-      }
-      return true;
-    };
-  </script>
 
-  <style> 
-     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; } 
-     body { 
-       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-       background: #f9f7f2; 
-       color: #333; 
-       line-height: 1.5; 
-       padding-bottom: 40px; 
-     } 
-     .container { max-width: 480px; margin: 0 auto; padding: 16px; } 
-      
-     .header { 
-       text-align: center; 
-       padding: 32px 0 24px; 
-       border-bottom: 2px solid #d4af37; 
-       margin-bottom: 24px; 
-     } 
-     .header h1 { 
-       font-size: 28px; 
-       color: #8b0000; 
-       font-weight: bold; 
-       margin-bottom: 8px; 
-     } 
-     .header p { 
-       font-size: 14px; 
-       color: #666; 
-     } 
-      
-     .service-card { 
-       background: #fff; 
-       border-radius: 12px; 
-       padding: 20px; 
-       margin: 16px 0; 
-       box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
-     } 
-     .service-card h3 { 
-       color: #8b0000; 
-       font-size: 18px; 
-       margin-bottom: 12px; 
-     } 
-     .service-card p { 
-       font-size: 14px; 
-       color: #555; 
-       margin-bottom: 16px; 
-     } 
-     .price-tag { 
-       display: inline-block; 
-       background: #fef3c7; 
-       color: #92400e; 
-       padding: 4px 12px; 
-       border-radius: 16px; 
-       font-size: 14px; 
-       font-weight: 600; 
-       margin-bottom: 12px; 
-     } 
-      
-     .btn { 
-       display: block; 
-       width: 100%; 
-       padding: 14px; 
-       background: #8b0000; 
-       color: #fff; 
-       border: none; 
-       border-radius: 8px; 
-       font-size: 16px; 
-       font-weight: 500; 
-       text-align: center; 
-       text-decoration: none; 
-       cursor: pointer; 
-       transition: background 0.2s; 
-     } 
-     .btn:active { background: #a00000; } 
-     .btn-secondary { background: #d4af37; color: #000; } 
-     .btn-secondary:active { background: #c4a030; } 
-      
-     .disclaimer { 
-       font-size: 12px; 
-       color: #999; 
-       text-align: center; 
-       margin: 24px 0; 
-       padding: 12px; 
-       background: #fff8e1; 
-       border-radius: 8px; 
-       border-left: 3px solid #d4af37; 
-     } 
-      
-     .footer { 
-       font-size: 12px; 
-       color: #999; 
-       text-align: center; 
-       padding: 20px 0; 
-       margin-top: 32px; 
-     } 
-     .footer a { color: #999; text-decoration: none; } 
-      
-     .db-status { 
-       position: fixed; 
-       bottom: 10px; 
-       right: 10px; 
-       font-size: 12px; 
-       padding: 4px 8px; 
-       background: rgba(255,255,255,0.9); 
-       border-radius: 4px; 
-       box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-     } 
-      
-     .loading { 
-       display: none; 
-       text-align: center; 
-       padding: 20px; 
-       color: #666; 
-     } 
-     .loading.active { display: block; } 
-      
-     @media (max-width: 480px) { 
-       .header h1 { font-size: 24px; } 
-       .container { padding: 12px; } 
-     } 
-   </style> 
- </head> 
- <body> 
- <div id="wake-up-notice" style="display:none; position:fixed; top:0; left:0; right:0; background:#d4af37; color:#000; padding:12px; text-align:center; z-index:9999; font-weight:600;">
-   🐸 服务唤醒中，请稍候 (约30秒)... <span id="countdown">30</span>s
- </div>
- <script>
- (function() {
-   if (!location.hostname.includes('onrender.com')) return;
-   var notice = document.getElementById('wake-up-notice');
-   var countdownEl = document.getElementById('countdown');
-   if (!notice || !countdownEl) return;
-   notice.style.display = 'block';
-   var seconds = 30;
-   countdownEl.textContent = String(seconds);
-   var timer = setInterval(function() {
-     seconds--;
-     countdownEl.textContent = String(seconds);
-     if (seconds <= 0) {
-       clearInterval(timer);
-       location.reload();
-     }
-   }, 1000);
- 
-   try {
-     var controller = new AbortController();
-     var timeout = setTimeout(function() { controller.abort(); }, 8000);
-     fetch('/health?ts=' + Date.now(), { cache: 'no-store', signal: controller.signal })
-       .then(function(r) { return r.ok ? r.text() : ''; })
-       .then(function(t) {
-         if (String(t).toLowerCase().includes('ok')) {
-           clearInterval(timer);
-           notice.style.display = 'none';
-         }
-       })
-       .catch(function() {})
-       .finally(function() { clearTimeout(timeout); });
-   } catch (e) {}
- })();
- </script>
- <div class="container"> 
-   <!-- 头部 --> 
-   <div class="header"> 
-     <h1>🐜 蚂蚁岛</h1> 
-     <p>AI+传统文化 · 手机一键获取文化命名报告</p> 
-   </div> 
-  
-   <!-- 个人命名服务 --> 
-   <div class="service-card"> 
-     <h3>✨ 个人命名文化咨询</h3> 
-     <p>融合AI分析与传统哲学美学，为新生儿/个人提供音韵优美、寓意深远的名字建议。</p> 
-     <div class="price-tag">¥88</div> 
-     <a href="service.html?type=personal" class="btn">立即体验</a> 
-   </div> 
-  
-   <!-- 企业命名服务 --> 
-   <div class="service-card"> 
-     <h3>🏢 企业命名文化咨询</h3> 
-     <p>结合行业属性与文化契合度，为品牌初创提供有传播力、有内涵的命名方案。</p> 
-     <div class="price-tag">¥288</div> 
-     <a href="enterprise_naming.html" class="btn btn-secondary">立即体验</a> 
-   </div> 
+        var refText = document.getElementById('refCodeText');
+        if (refText) refText.textContent = ref || 'DIRECT';
 
-  <!-- USDT 充值卡片 -->
-  <div class="payment-card" style="background:#fff;border-radius:12px;padding:20px;margin:16px 0;">
-    <h4 style="color:#8b0000;margin:0 0 12px;">💰 USDT-TRC20 充值</h4>
-    
-    <p style="font-size:14px;color:#666;margin:0 0 16px;">
-      扫码或复制地址转账，发送 TXID 给我自动到账✨
-    </p>
-    
-    <!-- 二维码 -->
-    <div style="text-align:center;margin:0 0 16px;">
-      <img 
-        src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=TYourWalletAddressHere" 
-        alt="USDT 收款二维码"
-        style="border:1px solid #eee;border-radius:8px;"
-        id="paymentQrCode"
-      >
-    </div>
-    
-    <!-- 地址复制 -->
-    <div style="display:flex;gap:8px;margin:0 0 12px;">
-      <input 
-        type="text" 
-        readonly 
-        value="TYourWalletAddressHere"
-        style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:12px;"
-        id="walletAddressInput"
-      >
-      <button onclick="copyAddress()" style="padding:8px 16px;background:#d4af37;border:none;border-radius:4px;cursor:pointer;">
-        复制
-      </button>
-    </div>
-    
-    <!-- 指引 -->
-    <ol style="font-size:13px;color:#666;padding-left:20px;margin:0;">
-      <li>用钱包转账 USDT-TRC20 到上方地址</li>
-      <li>转账成功后，复制 交易哈希(TXID)</li>
-      <li>在 Telegram 发给 @AntIslandBot</li>
-      <li>自动核验，积分秒到账🎉</li>
-    </ol>
-    
-    <p style="font-size:11px;color:#999;margin:12px 0 0;">
-      ⚠️ 仅支持 TRC20 网络 · 确认数≥20 · 1 USDT≈7.3 GAS
-    </p>
-  </div>
-  
-  <script>
-  // 从配置加载地址
-  document.addEventListener('DOMContentLoaded', () => {
-    if (typeof CONFIG !== 'undefined' && CONFIG.walletAddress) {
-      document.getElementById('walletAddressInput').value = CONFIG.walletAddress;
-      document.getElementById('paymentQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${CONFIG.walletAddress}`;
-    }
-  });
+        var botUser = (window.MAYIDAO_CONFIG && window.MAYIDAO_CONFIG.telegram && window.MAYIDAO_CONFIG.telegram.botUsername) ? window.MAYIDAO_CONFIG.telegram.botUsername : '';
+        var openBot = document.getElementById('openBot');
+        if (openBot) {
+          openBot.href = botUser ? ('https://t.me/' + botUser + (ref ? ('?start=' + encodeURIComponent(ref)) : '')) : 'https://t.me/';
+        }
 
-  function copyAddress() {
-    const addr = document.querySelector('.payment-card input').value;
-    navigator.clipboard.writeText(addr).then(() => {
-      alert('✅ 地址已复制！快去转账吧~');
-    });
-  }
-  </script>
+        var toPersonal = document.getElementById('startPersonal');
+        if (toPersonal) toPersonal.href = '/' + (ref ? ('?ref=' + encodeURIComponent(ref)) : '') + '#service';
 
-  <!-- 免责声明 --> 
-  <div class="disclaimer"> 
-     ⚠️ 本报告仅供文化娱乐与美学参考，不涉及命运预测。我们倡导科学理性，拒绝封建迷信。 
-   </div> 
-  
-   <!-- 加载提示 --> 
-   <div class="loading" id="loading"> 
-     <p>🔄 智能分析中，请稍候...</p> 
-   </div> 
-  
-   <!-- 分享赚钱模块（放在页脚上方） --> 
-  <div class="share-section" style="background:#fff8e1;padding:16px;border-radius:8px;margin:20px 0;"> 
-    <h4 style="color:#92400e;margin:0 0 8px;">🎁 分享赚 GAS 积分</h4> 
-    <p style="font-size:14px;color:#666;margin:0 0 12px;"> 
-      邀请朋友通过您的链接注册，双方各得奖励！ 
-    </p> 
-     
-    <div style="display:flex;gap:8px;"> 
-      <input type="text" id="shareLink" readonly  
-             value="https://mayidao-h5.vercel.app/?ref=ANTXXXXXX" 
-             style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:12px;"> 
-      <button onclick="copyLink()" style="padding:8px 16px;background:#8b0000;color:#fff;border:none;border-radius:4px;cursor:pointer;"> 
-        复制 
-      </button> 
-    </div> 
-     
-    <div style="margin-top:8px;display:flex;gap:8px;"> 
-      <a href="#" id="tgShare" target="_blank" style="font-size:12px;color:#0088cc;">Telegram 分享</a> 
-      <a href="#" id="waShare" target="_blank" style="font-size:12px;color:#25D366;">WhatsApp 分享</a> 
-    </div> 
-     
-    <p style="font-size:11px;color:#999;margin:8px 0 0;"> 
-      💡 朋友下单您得 26 GAS，可抵扣下次报告（50 GAS=¥88） 
-    </p> 
-  </div>
+        var toEnterprise = document.getElementById('startEnterprise');
+        if (toEnterprise) toEnterprise.href = '/' + (ref ? ('?ref=' + encodeURIComponent(ref)) : '') + '#service';
+      })();
+    </script>
 
-  <!-- 仅管理员可见的监控面板（需token验证） -->
-  <div id="admin-dashboard" style="display:none; background:#fff; border-radius:12px; padding:20px; margin:20px 0; border-left:4px solid #8b0000;">
-    <h4 style="margin-bottom:16px; color:#333;">📊 系统监控 (Admin)</h4>
-    
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px;">
-      <div class="metric-card" style="background:#f9f9f9; padding:12px; border-radius:8px; text-align:center;">
-        <div class="label" style="font-size:12px; color:#666;">今日营收</div>
-        <div class="value" id="daily-revenue" style="font-size:18px; font-weight:bold; color:#8b0000;">¥0</div>
+    <!-- Referral Rewards Section -->
+    <section id="growth-law" class="container" style="margin-top:20px;">
+      <div class="card" style="border:1px solid #e0f2f1; background: #f1f8e9;">
+        <h3 style="text-align:center; color:#2e7d32; margin-top:0;">🌱 三生万物 · 共生体系</h3>
+        <p style="text-align:center; color:#558b2f; font-weight:bold;">道生一，一生二，二生三，三生万物</p>
+        <ul style="list-style:none; padding:0; text-align:center; color:#33691e;">
+          <li style="margin:5px 0;">✨ 第一层：直连赋能 (30%)</li>
+          <li style="margin:5px 0;">✨ 第二层：间接共生 (5%)</li>
+          <li style="margin:5px 0;">✨ 第三层：生态繁荣 (3%)</li>
+        </ul>
+        <p class="note" style="text-align:center; font-size:0.85rem; color:#666; margin-top:10px;">
+          * 积分仅限站内服务兑换，共创文化价值
+        </p>
       </div>
-      
-      <div class="metric-card" style="background:#f9f9f9; padding:12px; border-radius:8px; text-align:center;">
-        <div class="label" style="font-size:12px; color:#666;">支付成功率</div>
-        <div class="value" id="payment-rate" style="font-size:18px; font-weight:bold; color:#22c55e;">--%</div>
+    </section>
+
+    <!-- Referral Rewards Dashboard -->
+    <section id="referral-dashboard" class="container" style="margin-top:20px;">
+      <div class="card" style="border:1px solid #eee;">
+        <h3 style="text-align:center; color:#8b0000; margin-top:0;">🎁 我的推荐奖励</h3>
+        <div style="text-align:center; margin-bottom:15px;">
+          <input type="text" id="myRefCodeInput" placeholder="输入您的推荐码 (如 ANT...)" style="padding:8px; width:180px; border:1px solid #ddd; border-radius:4px;">
+          <button onclick="checkMyRewards()" class="btn" style="width:auto; display:inline-block; padding:8px 16px; margin-top:5px; background:#d4af37;">查询</button>
+        </div>
+        <div id="rewards-loading" style="display:none; text-align:center; color:#666; margin-bottom:10px;">加载中...</div>
+        <div class="table-responsive">
+          <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+            <thead>
+              <tr style="background:#f9f9f9; border-bottom:2px solid #eee;">
+                <th style="padding:8px; text-align:left;">层级</th>
+                <th style="padding:8px; text-align:left;">来源</th>
+                <th style="padding:8px; text-align:right;">奖励</th>
+                <th style="padding:8px; text-align:right;">时间</th>
+              </tr>
+            </thead>
+            <tbody id="rewards-list">
+              <tr><td colspan="4" style="text-align:center; padding:15px; color:#999;">请输入推荐码查询</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-    
-    <div class="metric-card" style="margin-bottom:12px;">
-      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-        <span class="label" style="font-size:12px; color:#666;">Supabase配额</span>
-        <span class="label" id="quota-text" style="font-size:12px; color:#666;">0%</span>
-      </div>
-      <div class="progress-bar" style="background:#eee; height:6px; border-radius:3px; overflow:hidden;">
-        <div class="progress-fill" id="quota-bar" style="width:0%; height:100%; background:#22c55e; transition:width 0.3s;"></div>
-      </div>
-    </div>
-    
-    <button onclick="refreshMetrics()" style="width:100%; padding:8px; background:#f0f0f0; border:none; border-radius:6px; color:#666; font-size:12px; cursor:pointer;">
-      🔄 刷新数据
-    </button>
-  </div> 
+    </section>
 
-  <!-- 页脚 --> 
-  <div class="footer"> 
-    <p>© 2024 蚂蚁岛文化咨询 | <a href="#">合规声明</a></p> 
-    <p id="db-status" style="margin-top:8px; color:#999">🔄 连接中...</p> 
-  </div> 
-</div> 
- 
-<!-- 🪙 我的积分悬浮按钮（固定在右下角） --> 
-<div id="gas-float-btn" onclick="openGasCenter()" style=" 
-  position:fixed;bottom:20px;right:20px; 
-  background:#d4af37;color:#000; 
-  padding:10px 16px;border-radius:20px; 
-  font-size:14px;font-weight:600; 
-  box-shadow:0 4px 12px rgba(0,0,0,0.15); 
-  cursor:pointer;z-index:999; 
-  display:flex;align-items:center;gap:6px; 
-"> 
-  <span>🪙</span> 
-  <span id="gas-balance">30</span> 
-</div> 
-
-<!-- 🪙 积分中心弹窗（默认隐藏） --> 
-<div id="gas-center-modal" style=" 
-  display:none;position:fixed;top:0;left:0;width:100%;height:100%; 
-  background:rgba(0,0,0,0.5);z-index:1000; 
-  justify-content:center;align-items:center; 
-" onclick="closeGasCenter(event)"> 
-  
-  <div class="gas-center-content" style=" 
-    background:#fff;width:90%;max-width:400px; 
-    border-radius:12px;padding:20px; 
-    max-height:80vh;overflow-y:auto; 
-    position:relative; 
-  " onclick="event.stopPropagation()"> 
-    
-    <!-- 关闭按钮 --> 
-    <button onclick="closeGasCenter()" style=" 
-      position:absolute;top:12px;right:12px; 
-      background:none;border:none;font-size:20px; 
-      cursor:pointer;color:#666; 
-    ">✕</button> 
-    
-    <!-- 积分余额 --> 
-    <div style="text-align:center;padding:20px 0;border-bottom:1px solid #eee;"> 
-      <div style="font-size:14px;color:#666;">当前 GAS 积分</div> 
-      <div style="font-size:36px;font-weight:bold;color:#d4af37;margin:8px 0;"> 
-        <span id="modal-gas-balance">30</span> 
-      </div> 
-      <div style="font-size:12px;color:#999;">⚠️ 积分仅供站内使用，不可提现</div> 
-    </div> 
-    
-    <!-- 可兑换项目 --> 
-    <div style="padding:16px 0;"> 
-      <div style="font-weight:600;color:#333;margin-bottom:12px;">🎁 积分可兑换</div> 
+    <script>
+    async function checkMyRewards() {
+      const refCode = document.getElementById('myRefCodeInput').value.trim();
+      if (!refCode) return alert('请输入推荐码');
       
-      <div class="gas-item" onclick="useGas('discount_report')" style=" 
-        display:flex;justify-content:space-between;align-items:center; 
-        padding:12px;border:1px solid #eee;border-radius:8px; 
-        margin-bottom:8px;cursor:pointer; 
-      "> 
-        <div> 
-          <div style="font-weight:500;">抵扣 1 次基础报告</div> 
-          <div style="font-size:12px;color:#666;">省¥88 · 限个人命名使用</div> 
-        </div> 
-        <div style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:12px;font-weight:600;"> 
-          50 GAS 
-        </div> 
-      </div> 
+      const supabase = window.initSupabase();
+      if (!supabase) return alert('系统连接失败');
+
+      document.getElementById('rewards-loading').style.display = 'block';
+      document.getElementById('rewards-list').innerHTML = '';
       
-      <div class="gas-item" onclick="useGas('unlock_premium')" style=" 
-        display:flex;justify-content:space-between;align-items:center; 
-        padding:12px;border:1px solid #eee;border-radius:8px; 
-        margin-bottom:8px;cursor:pointer; 
-      "> 
-        <div> 
-          <div style="font-weight:500;">解锁高级五行分析</div> 
-          <div style="font-size:12px;color:#666;">深度解读 + 色彩建议</div> 
-        </div> 
-        <div style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:12px;font-weight:600;"> 
-          100 GAS 
-        </div> 
-      </div> 
-      
-      <div class="gas-item" onclick="useGas('extend_link')" style=" 
-        display:flex;justify-content:space-between;align-items:center; 
-        padding:12px;border:1px solid #eee;border-radius:8px; 
-        margin-bottom:8px;cursor:pointer; 
-      "> 
-        <div> 
-          <div style="font-weight:500;">报告链接延期 24 小时</div> 
-          <div style="font-size:12px;color:#666;">避免链接过期</div> 
-        </div> 
-        <div style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:12px;font-weight:600;"> 
-          20 GAS 
-        </div> 
-      </div> 
-    </div> 
-    
-    <!-- 积分流水 --> 
-    <div style="padding:16px 0;border-top:1px solid #eee;"> 
-      <div style="font-weight:600;color:#333;margin-bottom:12px;">📊 积分流水</div> 
-      <div id="gas-logs" style="font-size:13px;color:#666;"> 
-        <div style="padding:8px 0;border-bottom:1px dashed #eee;"> 
-          <div style="display:flex;justify-content:space-between;"> 
-            <span>+30 GAS</span> 
-            <span style="color:#22c55e;">注册奖励</span> 
-          </div> 
-          <div style="font-size:11px;color:#999;">2024-01-01 12:00</div> 
-        </div> 
-        <!-- 更多流水由 JS 动态加载 --> 
-      </div> 
-    </div> 
-    
-    <!-- 推荐记录 --> 
-    <div style="padding:16px 0;border-top:1px solid #eee;"> 
-      <div style="font-weight:600;color:#333;margin-bottom:12px;">👥 我的推荐</div> 
-      <div id="referrals" style="font-size:13px;color:#666;"> 
-        <div style="padding:8px 0;">暂无推荐记录，快去分享赚钱吧~</div> 
-      </div> 
-    </div> 
-    
-  </div> 
-</div> 
-
-<!-- 🪙 积分中心交互脚本 --> 
-<script> 
-// 打开积分中心 
-window.openGasCenter = async function() { 
-  const modal = document.getElementById('gas-center-modal'); 
-  modal.style.display = 'flex'; 
-  
-  // 加载用户积分数据 
-  await loadGasData(); 
-}; 
-
-// 关闭积分中心 
-window.closeGasCenter = function(event) { 
-  if (!event || event.target.id === 'gas-center-modal' || !event.target.id) { 
-    document.getElementById('gas-center-modal').style.display = 'none'; 
-  } 
-}; 
-
-// 加载积分数据（从 Supabase） 
-window.loadGasData = async function() { 
-  const supabase = window.initSupabase(); 
-  if (!supabase) return; 
-  
-  // 获取当前用户（简化：用 localStorage 的 ref_code 模拟） 
-  const refCode = localStorage.getItem('ant_ref') || 'GUEST'; 
-  
-  try { 
-    // 查询用户积分 
-    const { data: user, error: userErr } = await supabase 
-      .from('users') 
-      .select('gas_balance') 
-      .eq('ref_code', refCode) 
-      .single(); 
-    
-    // 如果还没注册，可能查不到，默认显示30
-    if (userErr && userErr.code !== 'PGRST116') {
-        console.error('查询积分出错', userErr);
-    }
-    
-    // 更新页面显示 
-    const balance = user?.gas_balance || 30; 
-    document.getElementById('gas-balance').textContent = balance; 
-    document.getElementById('modal-gas-balance').textContent = balance; 
-    
-    // 加载积分流水（简化版：模拟数据） 
-    loadGasLogs(balance); 
-    
-    // 加载推荐记录（简化版） 
-    loadReferrals(refCode); 
-    
-  } catch (error) { 
-    console.error('❌ 加载积分失败:', error); 
-    // 降级：显示本地缓存 
-    const cached = localStorage.getItem('gas_balance'); 
-    if (cached) { 
-      document.getElementById('gas-balance').textContent = cached;
-      document.getElementById('modal-gas-balance').textContent = cached;
-    }
-  } 
-};
-
-// 加载积分流水（模拟数据，Phase 2 接真实 API） 
-function loadGasLogs(balance) { 
-  const logs = [ 
-    { amount: 30, reason: '注册奖励', time: '2024-01-01 12:00' }, 
-    { amount: 26, reason: '推荐奖励', time: '2024-01-02 15:30' }, 
-    { amount: -20, reason: '链接延期', time: '2024-01-03 09:15' } 
-  ]; 
-  
-  const container = document.getElementById('gas-logs'); 
-  if (!container) return;
-  
-  container.innerHTML = logs.map(log => ` 
-    <div style="padding:8px 0;border-bottom:1px dashed #eee;"> 
-      <div style="display:flex;justify-content:space-between;"> 
-        <span style="color:${log.amount > 0 ? '#22c55e' : '#ef4444'}"> 
-          ${log.amount > 0 ? '+' : ''}${log.amount} GAS 
-        </span> 
-        <span>${log.reason}</span> 
-      </div> 
-      <div style="font-size:11px;color:#999;">${log.time}</div> 
-    </div> 
-  `).join(''); 
-} 
-
-// 加载推荐记录（模拟数据） 
-function loadReferrals(refCode) { 
-  const referrals = [ 
-    { name: '用户***88', reward: 26, time: '2026-01-02' }, 
-    { name: '用户***66', reward: 26, time: '2026-01-01' } 
-  ];
-  
-  const container = document.getElementById('referrals');
-  if (!container) return;
-  
-  if (referrals.length === 0) { 
-    container.innerHTML = '<div style="padding:8px 0;">暂无推荐记录，快去分享赚钱吧~</div>'; 
-    return; 
-  } 
-  
-  container.innerHTML = referrals.map(r => ` 
-    <div style="padding:8px 0;border-bottom:1px dashed #eee;"> 
-      <div style="display:flex;justify-content:space-between;"> 
-        <span>${r.name}</span> 
-        <span style="color:#22c55e;">+${r.reward} GAS</span> 
-      </div> 
-      <div style="font-size:11px;color:#999;">${r.time}</div> 
-    </div> 
-  `).join(''); 
-} 
-
-// 兑换积分 
-window.useGas = async function(usageKey) { 
-  // 兼容直接传字符串或事件对象
-  if (typeof usageKey !== 'string') return;
-  
-  // 获取配置
-  const config = window.MAYIDAO_CONFIG || {
-      gas: {
-          usage: {
-            discount_report: { cost: 50, desc: '抵扣 1 次基础报告' },
-            unlock_premium: { cost: 100, desc: '解锁高级五行分析' },
-            extend_link: { cost: 20, desc: '报告链接延期 24 小时' }
-          }
-      }
-  };
-  
-  const item = config.gas.usage[usageKey];
-  const cost = item?.cost; 
-  const desc = item?.desc; 
-  
-  if (!cost) { 
-    alert('❌ 兑换项目不存在'); 
-    return; 
-  } 
-  
-  const balanceElem = document.getElementById('modal-gas-balance');
-  const currentBalance = parseInt(balanceElem.textContent) || 0; 
-  
-  if (currentBalance < cost) { 
-    alert(`❌ 积分不足，还需 ${cost - currentBalance} GAS\n快去分享给朋友赚积分吧！`); 
-    return; 
-  } 
-  
-  // 确认兑换 
-  if (confirm(`确认兑换「${desc}」？\n消耗 ${cost} GAS`)) {
-      // 模拟兑换成功（Phase 2 接真实 API） 
-      const newBalance = currentBalance - cost; 
-      document.getElementById('gas-balance').textContent = newBalance; 
-      document.getElementById('modal-gas-balance').textContent = newBalance; 
-      localStorage.setItem('gas_balance', newBalance); 
-      
-      // 添加流水记录 
-      const logsEl = document.getElementById('gas-logs'); 
-      const now = new Date().toLocaleString('zh-CN'); 
-      if (logsEl) {
-        logsEl.innerHTML = ` 
-          <div style="padding:8px 0;border-bottom:1px dashed #eee;"> 
-            <div style="display:flex;justify-content:space-between;"> 
-              <span style="color:#ef4444;">-${cost} GAS</span> 
-              <span>${desc}</span> 
-            </div> 
-            <div style="font-size:11px;color:#999;">${now}</div> 
-          </div> 
-        ` + logsEl.innerHTML; 
-      }
-      
-      // 提示成功 
-      alert(`✅ 兑换成功！\n${desc}\n剩余积分：${newBalance} GAS`); 
-      
-      // 根据兑换类型执行对应操作 
-      if (usageKey === 'discount_report') { 
-        // 标记用户有抵扣券 
-        localStorage.setItem('has_discount', 'true'); 
-        alert('🎫 抵扣券已发放，下单时自动使用~'); 
-      } 
-  }
-};
-// 页面加载时初始化 
-window.addEventListener('DOMContentLoaded', function() { 
-  // 加载本地缓存的积分 
-  const cached = localStorage.getItem('gas_balance'); 
-  if (cached) { 
-    document.getElementById('gas-balance').textContent = cached; 
-  } 
-}); 
-</script>
-
-<script> 
-// 分享功能
-function copyLink() { 
-  const input = document.getElementById('shareLink'); 
-  input.select(); 
-  document.execCommand('copy'); 
-  alert('✅ 链接已复制！快去分享赚钱吧~'); 
-} 
-
-// 页面加载自动初始化
-(function() { 
-  console.log('🐜 蚂蚁岛页面加载'); 
-  console.log('📍 当前 URL:', window.location.href); 
-   
-  // 解析推荐码 
-  const urlParams = new URLSearchParams(window.location.search); 
-  let refCode = urlParams.get('ref'); 
-  
-  // 如果 URL 没带 ref，尝试从 localStorage 读取，或生成新的
-  if (refCode) {
-    console.log('🔗 捕获推荐码:', refCode);
-    localStorage.setItem('ant_ref', refCode);
-  } else {
-    refCode = localStorage.getItem('ant_ref');
-    if (!refCode) {
-        // 随机生成一个临时推荐码用于展示
-        refCode = 'ANT' + Math.random().toString(36).substring(2,10).toUpperCase();
-        localStorage.setItem('ant_ref', refCode);
-    }
-  }
-   
-  // 更新分享链接显示
-  const shareUrl = `https://mayidao-h5.vercel.app/?ref=${refCode}`;
-  const shareInput = document.getElementById('shareLink');
-  if (shareInput) shareInput.value = shareUrl;
-  
-  // 更新社交分享链接
-  const tgShare = document.getElementById('tgShare');
-  if (tgShare) tgShare.href = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent('送你 30 GAS 积分！蚂蚁岛 AI 文化命名，亲测很准~')}`;
-  
-  const waShare = document.getElementById('waShare');
-  if (waShare) waShare.href = `https://wa.me/?text=${encodeURIComponent('送你 30 GAS 积分！蚂蚁岛 AI 文化命名 ' + shareUrl)}`;
-
-})();
-
-// 管理后台逻辑 (Phase 2)
-async function refreshMetrics() {
-  const supabase = window.initSupabase();
-  if (!supabase) return;
-  
-  const btn = document.querySelector('#admin-dashboard button');
-  if(btn) btn.textContent = '🔄 加载中...';
-  
-  try {
-    // 1. 今日营收 (直接查 payment_records)
-    const today = new Date().toISOString().slice(0, 10);
-    // 尝试查询今日已完成的订单
-    const { data: payments, error: payErr } = await supabase
-      .from('payment_records')
-      .select('amount_usdt')
-      .eq('status', 'completed')
-      .gte('created_at', today + 'T00:00:00');
-      
-    let revenue = 0;
-    if (payments) {
-        revenue = payments.reduce((sum, p) => sum + (Number(p.amount_usdt) || 0), 0);
-    }
-    // 估算人民币: 1 USDT ≈ 7.3 CNY
-    document.getElementById('daily-revenue').textContent = `¥${(revenue * 7.3).toFixed(0)}`;
-    
-    // 2. 支付成功率 (查最近50条)
-    const { data: recent, error: recentErr } = await supabase
-      .from('payment_records')
-      .select('status')
-      .order('created_at', { ascending: false })
-      .limit(50);
-      
-    if (recent && recent.length > 0) {
-        const successCount = recent.filter(r => r.status === 'completed').length;
-        const rate = Math.round((successCount / recent.length) * 100);
-        document.getElementById('payment-rate').textContent = `${rate}%`;
-    } else {
-        document.getElementById('payment-rate').textContent = '--%';
-    }
-    
-    // 3. 配额使用率 (用户数估算)
-    const { count, error: countErr } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true });
-      
-    if (!countErr) {
-        const quotaPct = Math.min(100, (count / 50000) * 100); // 5万行免费上限
-        document.getElementById('quota-bar').style.width = `${quotaPct}%`;
-        document.getElementById('quota-text').textContent = `${quotaPct.toFixed(1)}% (用户数: ${count})`;
-        
-        const bar = document.getElementById('quota-bar');
-        bar.style.background = quotaPct > 80 ? '#ef4444' : quotaPct > 60 ? '#f59e0b' : '#22c55e';
-    }
-    
-  } catch (e) {
-    console.warn('监控刷新失败:', e);
-  } finally {
-    if(btn) btn.textContent = '🔄 刷新数据';
-  }
-}
-
-// 检查管理员权限
-if (localStorage.getItem('admin_token') === 'mayidao_admin_2024') {
-  const dash = document.getElementById('admin-dashboard');
-  if (dash) {
-      dash.style.display = 'block';
-      refreshMetrics();
-      // 5分钟自动刷新
-      setInterval(refreshMetrics, 300000);
-  }
-}
-</script>
-  const shareUrl = 'https://mayidao-h5.vercel.app/?ref=' + refCode;
-  const shareInput = document.getElementById('shareLink');
-  if (shareInput) {
-      shareInput.value = shareUrl;
-      
-      // 更新社交分享链接
-      const encodedUrl = encodeURIComponent(shareUrl);
-      const tgLink = document.getElementById('tgShare');
-      if(tgLink) tgLink.href = `https://t.me/share/url?url=${encodedUrl}&text=AI文化命名测试`;
-      
-      const waLink = document.getElementById('waShare');
-      if(waLink) waLink.href = `https://api.whatsapp.com/send?text=${encodedUrl}`;
-  }
-
-  // 埋点追踪 
-  const track = function(eventName) { 
-    console.log('📊 Track:', eventName); 
-    // 后续接入 n8n webhook 
-  }; 
-   
-  // 绑定点击事件 
-  document.querySelectorAll('.btn').forEach(btn => { 
-    btn.addEventListener('click', function(e) { 
-      // e.preventDefault(); // 暂时允许跳转
-      track('service_click'); 
-      
-      // 保持 ref 参数传递
-      const href = this.getAttribute('href');
-      if (href && href.startsWith('service.html')) {
-        const ok = typeof window.checkIslandAccess === 'function' ? window.checkIslandAccess() : true;
-        if (!ok) {
-          e.preventDefault();
+      try {
+        // 1. Get User ID from Ref Code
+        const { data: user, error: uErr } = await supabase
+          .from('users')
+          .select('id')
+          .eq('ref_code', refCode)
+          .single();
+          
+        if (uErr || !user) {
+          document.getElementById('rewards-loading').style.display = 'none';
+          document.getElementById('rewards-list').innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:red;">未找到该推荐码</td></tr>';
           return;
         }
+        
+        // 2. Load Rewards
+        await loadReferralRewards(user.id, supabase);
+      } catch (e) {
+        console.error(e);
+        alert('查询失败');
+      } finally {
+        document.getElementById('rewards-loading').style.display = 'none';
       }
-      if (href && !href.startsWith('#') && !href.includes('javascript')) {
-          const storedRef = localStorage.getItem('ant_ref');
-          if (storedRef && !href.includes('?ref=')) {
-            const separator = href.includes('?') ? '&' : '?';
-            this.href = href + separator + 'ref=' + storedRef;
-          }
+    }
+
+    async function loadReferralRewards(userId, supabase) {
+      const { data, error } = await supabase
+        .from('gas_transactions')
+        .select('referral_level, description, amount, created_at')
+        .eq('user_id', userId)
+        .eq('transaction_type', 'referral_reward')
+        .order('created_at', { ascending: false });
+
+      const tbody = document.getElementById('rewards-list');
+      
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">暂无奖励记录</td></tr>';
+        return;
       }
-    }); 
-  }); 
-   
-  track('page_view'); 
-})(); 
-</script> 
- </body> 
- </html>
+
+      tbody.innerHTML = data.map(r => `
+        <tr style="border-bottom:1px solid #eee;">
+          <td style="padding:8px;">L${r.referral_level || 1}</td>
+          <td style="padding:8px;">${r.description?.match(/order (\w+)/)?.[1]?.slice(0,6) || 'Order'}...</td>
+          <td style="padding:8px; text-align:right; color:#d4af37; font-weight:bold;">+${r.amount}</td>
+          <td style="padding:8px; text-align:right; color:#666; font-size:0.8rem;">${new Date(r.created_at).toLocaleDateString()}</td>
+        </tr>
+      `).join('');
+    }
+    
+    // Auto-check if ref code is stored locally and it matches the user's intent? 
+    // Usually local storage 'ant_ref' is the *referrer*, so we don't auto-fill it as *my* code.
+    </script>
+
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+﻿DIAG: https://qingwa.onrender.com/?ref=180user0669
+
+1) Render health check
+ - Try 1: ERROR 鎿嶄綔瓒呮椂銆? - Try 2: ERROR 鎿嶄綔瓒呮椂銆? - Try 3: ERROR 鎿嶄綔瓒呮椂銆?
+2) Local index.html ref parsing
+ - OK: URL ref parsing exists (URLSearchParams + localStorage ant_ref).
+
+3) Bot redirector behavior (server root handler)
+姝ｅ湪鍒嗘瀽鈥渓ocalStorage\\.setItem\\(\\s*'ant_ref'鈥濓紞 ) 涓嶈冻銆?鎵€鍦ㄤ綅缃?D:\MAYIJU\diagnose_ref_link.ps1:63 瀛楃: 3
++   $hasLocalStorageWrite = ($bot -match "localStorage\\.setItem\\(\\s* ..
+.
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (:) [], ArgumentException
+    + FullyQualifiedErrorId : System.ArgumentException
+ 
